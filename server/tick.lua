@@ -10,7 +10,7 @@ function AddHiveToSimulation(hiveId)
         end -- Už v seznamu je
     end
     table.insert(hiveIds, hiveId)
-    debugPrint(('[aprts_bee] Úl %d byl přidán do simulační smyčky.'):format(hiveId))
+    debugPrint(('[aprts_apiary] Úl %d byl přidán do simulační smyčky.'):format(hiveId))
 end
 
 local function getHive(hiveID)
@@ -60,17 +60,17 @@ function StartSimulationTick()
             if currentHiveIndex > #hiveIds then
                 FlushDirtyHives()
                 currentHiveIndex = 1 -- Reset
-                debugPrint(('[aprts_bee] Cyklus simulace dokončen. Změny uloženy.'))
+                debugPrint(('[aprts_apiary] Cyklus simulace dokončen. Změny uloženy.'))
             end
 
             local endTime = GetGameTimer()
-            -- debugPrint(('[aprts_bee] Tick části úlů dokončen za %d ms.'):format(endTime - startTime))
+            -- debugPrint(('[aprts_apiary] Tick části úlů dokončen za %d ms.'):format(endTime - startTime))
         end
     end)
 end
 
 local function nowSec()
-    return math.floor(getTimeStamp() / 1000)
+    return os.time() 
 end
 
 local function toSecMaybeMs(v)
@@ -163,13 +163,13 @@ function SimulateChunkOfHives()
         currentHiveIndex = currentHiveIndex + 1
 
         if not hive then
-            debugPrint(('[aprts_bee] Varování: Úl s ID %d nebyl nalezen v paměti. Přeskakuji.'):format(hiveId))
+            debugPrint(('[aprts_apiary] Varování: Úl s ID %d nebyl nalezen v paměti. Přeskakuji.'):format(hiveId))
             goto continue
         end
 
         local apiary = Apiaries[apiaryID]
         if not apiary then
-            debugPrint(('[aprts_bee] Varování: Úl %d nemá platný včelín (ID: %s). Přeskakuji.'):format(hiveId,
+            debugPrint(('[aprts_apiary] Varování: Úl %d nemá platný včelín (ID: %s). Přeskakuji.'):format(hiveId,
                 tostring(hive.apiary_id)))
             goto continue
         end
@@ -380,7 +380,7 @@ function MarkHiveAsDirty(hiveId)
 end
 
 function FlushDirtyHives()
-    debugPrint(('[aprts_bee] Ukládání %d změněných úlů do DB...'):format(#DirtyHives))
+    debugPrint(('[aprts_apiary] Ukládání %d změněných úlů do DB...'):format(#DirtyHives))
     local queries = {}
 
     for hiveId, _ in pairs(DirtyHives) do
@@ -407,15 +407,15 @@ function FlushDirtyHives()
                           lastTickSec or math.floor(getTimeStamp() / 1000), beeGeneticsJson, hive.queen_uid, hiveId}
             })
         else
-            debugPrint(('[aprts_bee] Chyba: Nelze uložit úl %d, protože nebyl nalezen v paměti.'):format(hiveId))
+            debugPrint(('[aprts_apiary] Chyba: Nelze uložit úl %d, protože nebyl nalezen v paměti.'):format(hiveId))
         end
     end
 
     if #queries > 0 then
         MySQL:transaction_async(queries)
-        debugPrint(('[aprts_bee] Uloženo %d změněných úlů do DB.'):format(#queries))
+        debugPrint(('[aprts_apiary] Uloženo %d změněných úlů do DB.'):format(#queries))
     else
-        debugPrint('[aprts_bee] Žádné změněné úly k uložení.')
+        debugPrint('[aprts_apiary] Žádné změněné úly k uložení.')
     end
     DirtyHives = {}
 end

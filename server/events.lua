@@ -125,6 +125,16 @@ AddEventHandler("onResourceStart", function(resource)
     end
 end)
 
+
+AddEventHandler('onResourceStop', function(resourceName)
+    if resourceName == GetCurrentResourceName() then
+        print('[aprts_apiary] Resource is stopping, forcing a flush of dirty hives...')
+        FlushDirtyHives() 
+        print('[aprts_apiary] Flush complete.')
+    end
+end)
+
+
 RegisterServerEvent("aprts_apiary:Server:LoadData")
 AddEventHandler("aprts_apiary:Server:LoadData", function()
     local _source = source
@@ -142,7 +152,7 @@ AddEventHandler('playerDropped', function(reason)
     for hiveId, lock in pairs(HiveLocks) do
         if lock.identifier == identifier then
             UnlockHive(hiveId)
-            print(('[aprts_bee] Uvolněn zámek na úl %d kvůli odpojení hráče.'):format(hiveId))
+            print(('[aprts_apiary] Uvolněn zámek na úl %d kvůli odpojení hráče.'):format(hiveId))
         end
     end
 end)

@@ -6,6 +6,8 @@ Queens = {}
 Bees = {}
 QueensByUID = QueensByUID or {}
 QueensByHive = QueensByHive or {}
+
+
 function debugPrint(msg)
     if Config.Debug == true then
         print("^1[APIARY]^0 " .. msg)
@@ -96,11 +98,12 @@ function LokiLog(event, player, playerName, message, ...)
 end
 
 function LOG(player, event, message, ...)
-    local playerName = GetPlayerName(player)
+    local playerName = "SERVER"
     local charID = 0
     if Player(player) and Player(player).state and Player(player).state.Character and
         Player(player).state.Character.CharId then
         charID = Player(player).state.Character.CharId
+        playerName = GetPlayerName(player)
     end
     local text = charID .. "/" .. playerName .. ": " .. message
     if Config.Debug == true then

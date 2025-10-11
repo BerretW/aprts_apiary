@@ -4,7 +4,7 @@ end
 
 RegisterCommand('bee_createapiary', function(source, args, rawCommand)
     if not IsPlayerAdmin(source) then
-        print('[aprts_bee] Neoprávněný přístup k příkazu /bee_createapiary od hráče ID: ' .. source)
+        print('[aprts_apiary] Neoprávněný přístup k příkazu /bee_createapiary od hráče ID: ' .. source)
         return
     end
     local name = args[1] or "Moje včelnice"

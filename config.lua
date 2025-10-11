@@ -55,7 +55,16 @@ Config.BeeProtection = {
     { tag = 'beekeeping_gloves', protection = 0.1 } -- 10% redukce
     -- Celková ochrana se sčítá, max 1.0 (100%)
 }
-
+-- [[ Královny a genetika ]]
+Config.Queen = {
+    baseLifespanDays = 60,       -- Průměrná délka života královny ve dnech (při lifespan=1.0)
+    senescenceStartFrac = 0.8,   -- V jaké části života začne stárnout a klesat plodnost (80%)
+    deathChanceAtEnd = 0.05,     -- Denní šance na úmrtí na konci života
+    requeenMinDays = 3,          -- Minimální počet dní bez královny pro pokus o přelarvení
+    emergencyRequeenChancePerDay = 0.15, -- Základní denní šance na úspěšné přelarvení
+    minPopForRequeen = 5000,     -- Minimální počet včel pro pokus o přelarvení
+    nectarNeedFactor = 0.5       -- Jaký minimální přísun nektaru je potřeba pro přelarvení
+}
 -- [[ Divoké královny ]]
 Config.WildQueen = {
     awardLimit = 3, -- Max královen za restart pro jednoho hráče
