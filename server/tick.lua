@@ -236,11 +236,6 @@ function SimulateChunkOfHives()
             hive.population = hive.population * ((1 - (Config.Population.queenlessDecayPerDay or 0.03)) ^ days)
         end
 
-        -- === Růst populace (ovlivněn nemocí) ===
-        local growthPerDay = (hive.population * (Config.Population.growthFactor or 0) * nectarFlowPerDay) *
-                                 effectiveFert * populationDebuff
-        local growth = growthPerDay * days
-
         -- === ZMĚNA: Spotřeba a produkce medu (více druhů) ===
         local honeyProdFactor = Config.Honey.honeyProductionFactor or 0.00002
         local honeyGain = (hive.population * honeyProdFactor * nectarFlowPerDay * honeyYield) * days * honeyDebuff
@@ -286,10 +281,16 @@ function SimulateChunkOfHives()
             totalHoneyAfterChanges = totalHoneyAfterChanges + amount
         end
 
-        if totalHoneyAfterChanges <= 0 and (honeyGain - consumption) < 0 then
-            hive.population = hive.population * ((1 - (Config.Population.starvationDecayPerDay or 0.05)) ^ days)
-            hive.substate = 'STARVING'
-        end
+        -- Faktor růstu ze zásob (0.0 až 1.0)
+        -- Pokud je v úlu alespoň 10 jednotek medu, růst je maximální
+        local storeGrowthFactor = math.min(1.0, totalHoneyAfterChanges / 10.0)
+
+        -- Kombinace vnějšího a vnitřního zdroje
+        local effectiveNectarForGrowth = math.max(nectarFlowPerDay, storeGrowthFactor * 0.5) -- *0.5 aby růst ze zásob nebyl tak rychlý
+
+        local growthPerDay = (hive.population * (Config.Population.growthFactor or 0) * effectiveNectarForGrowth) *
+                                 effectiveFert * populationDebuff
+        local growth = growthPerDay * days
 
         -- Aktualizace populace
         hive.population = math.max(0, hive.population + growth)

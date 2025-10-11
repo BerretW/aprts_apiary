@@ -18,8 +18,8 @@ Config.Jobs = {
 
 Config.UseBeeFX = true
 Config.queen_item = "bee_queen" -- Item pro královnuu
-Config.bee_item = "bee_drone"   -- Item pro dělnici a trubce
-Config.honey_item = "bee_honey"      -- Item pro med
+Config.bee_item = "bee_workers" -- Změna názvu pro lepší srozumitelnost
+Config.honey_item = "bee_honey_mixed"      -- Základní/smíšený med
 Config.wax_item = "bee_wax"      -- Item pro vosk
 Config.bee_box_item = "bee_box"  -- Item pro úl
 Config.super_box_item = "bee_super_box" -- Item pro nástavek
@@ -40,9 +40,8 @@ Config.Months = {
     [12] = { name = "Prosinec",  cold = true,  hot = false, nectarFactor = 0.05, seasonalDiseaseBoost = 0.4 },
 }
 
+Config.starter_population = 5000 -- Kolik včel přidá jedna jednotka 'bee_workers'
 
-Config.honey_item = "bee_honey_mixed"      -- Základní/smíšený med
-Config.wax_item = "bee_wax"
 
 Config.HoneyTypes = {
     -- Klíč musí odpovídat klíči ve `flora_profile` v databázi
@@ -191,8 +190,7 @@ Config.Diseases = {
         honeyDebuffMax = 0.5,      -- Sníží produkci medu až o 50 %
     }
 }
-Config.bee_item = "bee_workers" -- Změna názvu pro lepší srozumitelnost
-Config.starter_population = 5000 -- Kolik včel přidá jedna jednotka 'bee_workers'
+
 
 -- [[ Léčiva ]]
 Config.Treatments = {
