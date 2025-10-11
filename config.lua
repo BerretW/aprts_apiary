@@ -40,6 +40,40 @@ Config.Months = {
     [12] = { name = "Prosinec",  cold = true,  hot = false, nectarFactor = 0.05, seasonalDiseaseBoost = 0.4 },
 }
 
+
+Config.honey_item = "bee_honey_mixed"      -- Základní/smíšený med
+Config.wax_item = "bee_wax"
+
+Config.HoneyTypes = {
+    -- Klíč musí odpovídat klíči ve `flora_profile` v databázi
+    clover = {
+        itemName = "bee_honey_clover",
+        displayName = "Jetelový med"
+    },
+    wildflower = {
+        itemName = "bee_honey_wildflower",
+        displayName = "Luční med"
+    },
+    tree_sap = {
+        itemName = "bee_honey_forest",
+        displayName = "Lesní med (medovice)"
+    },
+    orange = {
+        itemName = "bee_honey_orange",
+        displayName = "Pomerančový med"
+    },
+    lavender = {
+        itemName = "bee_honey_lavender",
+        displayName = "Levandulový med"
+    },
+    cactus = {
+        itemName = "bee_honey_cactus",
+        displayName = "Kaktusový med"
+    }
+    -- ... další druhy
+}
+
+
 -- [[ Agresivita a ochrana ]]
 Config.BeeDamage = {
     baseDamage = 2.0,      -- Základní poškození od žihadla
@@ -78,6 +112,22 @@ Config.WildQueen = {
     }
 }
 
+
+Config.Breeding = {
+    graftingSuccessChance = 0.6, -- 60% šance na úspěšné přelarvení
+    matingFlightSuccessChance = 0.8, -- 80% šance na úspěšný snubní let (ovlivněno počasím)
+    -- Jak se míchá genetika: 0.5 = průměr, 0.7 = větší vliv matky
+    inheritanceFactor = 0.5, 
+    -- Jak moc se mohou geny náhodně zmutovat
+    mutationFactor = 0.05,
+}
+
+-- Nové itemy (přidat do DB itemů):
+-- 1. 'queen_cell_grafted' - Matečník s larvou (v metadatech ponese genetiku matky)
+-- 2. 'queen_virgin' - Nevylíhnutá, neoplozená královna (v metadatech genetika matky)
+-- 3. 'mating_box' - Oplodňáček (item, který lze položit na zem a vytvoří dočasný objekt)
+
+
 -- [[ Simulace ]]
 
 -- 🔄 Obecné chování simulace
@@ -92,7 +142,7 @@ Config.RainEWMAAlpha = 0.15      -- rychlost „vyprchávání“ deště (EWMA)
 -- 🐝 Populační logika
 Config.Population = {
     growthFactor = 0.00008,       -- základní růst populace za den (vynásoben nektarem a fertilitou)
-    consumptionPerBee = 0.00001,  -- kolik „medu“ včela spotřebuje za den
+    consumptionPerBee = 0.000005,  -- kolik „medu“ včela spotřebuje za den
     beesPerFrame = 2000,          -- kolik včel se vejde do jednoho rámku
     queenlessDecayPerDay = 0.03,  -- úbytek populace za den bez královny (3 %)
     diseaseDecayPerDay = 0.02,    -- úbytek populace za den při nemoci (2 %)
@@ -102,6 +152,7 @@ Config.Population = {
 -- 🍯 Produkce medu
 Config.Honey = {
     honeyPerCappedFrame = 2.5,    -- množství medu (v jednotkách) pro jeden zavíčkovaný rámek
+    honeyProductionFactor = 0.00002 -- <<-- PŘIDEJ TENTO ŘÁDEK
 }
 
 -- 🍯 Nástavky (supers)
@@ -126,4 +177,33 @@ Config.DefaultGenetics = {
     swarmTendency = 0.5,          -- jak moc mají tendenci se rojit (0–1)
     waxYield = 0.5,               -- násobitel produkce vosku
     queenLifespan = 0.5           -- délka života královny (0–1, kde 1 je 60 dní)
+}
+
+-- [[ Nemoci a parazité ]]
+Config.Diseases = {
+    varroa = {
+        name = "Kleštík včelí (Varroa)",
+        maxLevel = 1.0, -- 1.0 = 100% zamoření
+        -- Jak rychle se kleštík množí (faktor za den) - ovlivněno sezónou a genetikou
+        baseGrowthRate = 0.005, 
+        -- Negativní dopady při maximálním zamoření (škáluje se lineárně)
+        populationDebuffMax = 0.7, -- Sníží růst populace až o 70 %
+        honeyDebuffMax = 0.5,      -- Sníží produkci medu až o 50 %
+    }
+}
+Config.bee_item = "bee_workers" -- Změna názvu pro lepší srozumitelnost
+Config.starter_population = 5000 -- Kolik včel přidá jedna jednotka 'bee_workers'
+
+-- [[ Léčiva ]]
+Config.Treatments = {
+    ['bee_treatment_basic'] = { -- název itemu
+        name = "Základní proužky s léčivem",
+        effectiveness = 0.4, -- Sníží 'mite_level' o 0.4 (tedy 40 %)
+        cooldownHours = 72,  -- Po aplikaci nelze další léčivo použít 3 dny
+    },
+    ['bee_treatment_strong'] = {
+        name = "Silný odpařovač kyseliny",
+        effectiveness = 0.8,
+        cooldownHours = 168, -- 7 dní
+    }
 }

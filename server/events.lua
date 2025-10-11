@@ -90,7 +90,6 @@ AddEventHandler("onResourceStart", function(resource)
         end
         dataReady = false
 
-
         -- ... ve třetím SELECTu (queens):
         MySQL:execute("SELECT * FROM aprts_bee_queens", {}, function(result)
             debugPrint("Loading queens...")
@@ -125,15 +124,13 @@ AddEventHandler("onResourceStart", function(resource)
     end
 end)
 
-
 AddEventHandler('onResourceStop', function(resourceName)
     if resourceName == GetCurrentResourceName() then
         print('[aprts_apiary] Resource is stopping, forcing a flush of dirty hives...')
-        FlushDirtyHives() 
+        FlushDirtyHives()
         print('[aprts_apiary] Flush complete.')
     end
 end)
-
 
 RegisterServerEvent("aprts_apiary:Server:LoadData")
 AddEventHandler("aprts_apiary:Server:LoadData", function()
@@ -155,6 +152,145 @@ AddEventHandler('playerDropped', function(reason)
             print(('[aprts_apiary] Uvolněn zámek na úl %d kvůli odpojení hráče.'):format(hiveId))
         end
     end
+end)
+
+RegisterServerEvent('aprts_apiary:Server:TreatHive')
+AddEventHandler('aprts_apiary:Server:TreatHive', function(hiveId, treatmentItemName)
+    local src = source
+    local player = Player(src)
+    local apiary = getApiaryID(hiveId)
+    local hive = Apiaries[apiary] and Apiaries[apiary].hives[hiveId]
+
+    if not hive or IsHiveLocked(hiveId, src) then
+        return
+    end
+
+    local treatment = Config.Treatments[treatmentItemName]
+    if not treatment then
+        return
+    end
+
+    -- Zkontroluj cooldown
+    if hive.last_treatment_at then
+        local cooldownEnd = toSecMaybeMs(hive.last_treatment_at) + (treatment.cooldownHours * 3600)
+        if os.time() < cooldownEnd then
+            Notify(src, 'Tento úl byl nedávno ošetřen. Počkej.', 'error')
+            return
+        end
+    end
+
+    -- Zkontroluj a odeber item
+    -- Tady přijde logika pro tvůj inventář (např. exports.vorp_inventory:removeItem)
+    -- Příklad: if exports.vorp_inventory:hasItem(src, treatmentItemName, 1) then ...
+
+    -- Aplikuj efekt
+    hive.mite_level = math.max(0, hive.mite_level - treatment.effectiveness)
+    hive.last_treatment_at = os.date('%Y-%m-%d %H:%M:%S', os.time())
+    MarkHiveAsDirty(hiveId) -- Označ pro uložení
+
+    Notify(src, ('Úspěšně jsi aplikoval "%s". Hladina kleštíka klesla.'):format(treatment.name), 'success')
+end)
+
+RegisterServerEvent('aprts_apiary:Server:GraftQueenCell')
+AddEventHandler('aprts_apiary:Server:GraftQueenCell', function(hiveId)
+    local src = source
+    local apiary = getApiaryID(hiveId)
+    local hive = Apiaries[apiary] and Apiaries[apiary].hives[hiveId]
+
+    if not hive or not hive.queen or not hive.queen.alive then
+        Notify(src, 'Tento úl nemá plodící královnu.', 'error')
+        return
+    end
+
+    if math.random() <= Config.Breeding.graftingSuccessChance then
+        local motherGenetics = hive.queen.genetics
+        -- Vytvoř item 'queen_cell_grafted' s metadaty
+        -- Příklad: exports.vorp_inventory:addItem(src, 'queen_cell_grafted', 1, { genetics = motherGenetics })
+        Notify(src, 'Podařilo se ti odebrat matečník s larvou!', 'success')
+    else
+        Notify(src, 'Přelarvení se nepovedlo, larva byla poškozena.', 'error')
+    end
+end)
+
+-- Tento event se zavolá, když hráč do oplodňáčku vloží 'queen_virgin' a 'bee_drone'
+RegisterServerEvent('aprts_apiary:Server:StartMatingFlight')
+AddEventHandler('aprts_apiary:Server:StartMatingFlight', function(matingBoxData)
+    -- matingBoxData by obsahovalo: { virginQueenMetadata, droneMetadata }
+    local src = source
+
+    -- Zkontroluj počasí, denní dobu atd.
+    -- ...
+
+    if math.random() <= Config.Breeding.matingFlightSuccessChance then
+        local motherGenetics = matingBoxData.virginQueenMetadata.genetics
+        -- Zjednodušení: předpokládáme, že trubci mají stejnou genetiku jako úl, ze kterého pochází
+        local droneGenetics = matingBoxData.droneMetadata.genetics
+
+        local newGenetics = {}
+        -- Smíchej genetiku
+        for gene, motherValue in pairs(motherGenetics) do
+            local droneValue = droneGenetics[gene] or Config.DefaultGenetics[gene]
+            local inheritedValue = (motherValue * Config.Breeding.inheritanceFactor) +
+                                       (droneValue * (1 - Config.Breeding.inheritanceFactor))
+            -- Přidej mutaci
+            local mutation = (math.random() * 2 - 1) * Config.Breeding.mutationFactor
+            newGenetics[gene] = math.max(0, math.min(1, inheritedValue + mutation))
+        end
+
+        -- Odeber 'queen_virgin' a 'bee_drone'
+        -- Přidej novou královnu 'bee_queen' s vypočítanou genetikou v metadatech
+        -- Příklad: exports.vorp_inventory:addItem(src, Config.queen_item, 1, { genetics = newGenetics })
+
+        Notify(src, 'Snubní let byl úspěšný! Máš novou, oplozenou královnu.', 'success')
+    else
+        -- Odeber 'queen_virgin', protože se nevrátila
+        Notify(src, 'Královna se ze snubního letu nevrátila.', 'error')
+    end
+end)
+
+-- Registruj event, který se zavolá, když hráč použije item na úl
+RegisterServerEvent('aprts_apiary:Server:AddPopulation')
+AddEventHandler('aprts_apiary:Server:AddPopulation', function(hiveId)
+    local src = source
+    local identifier = GetIdentifier(src)
+    local apiary = getApiaryID(hiveId)
+    local hive = Apiaries[apiary] and Apiaries[apiary].hives[hiveId]
+
+    if not hive or IsHiveLocked(hiveId, src) then
+        Notify(src, 'Nelze interagovat s tímto úlem.', 'error')
+        return
+    end
+
+    local beeItemName = Config.bee_item or "bee_drone"
+    local amountNeeded = 1 -- Kolik itemů odebereme
+
+    -- 1. Ověření itemu a odebrání (Zde použij API tvého inventáře)
+    -- PŘÍKLAD:
+    local hasItem = exports.vorp_inventory:hasItem(src, beeItemName, amountNeeded)
+    if not hasItem then
+        Notify(src, 'Nemáš dostatek včel dělnic k vložení do úlu.', 'error')
+        return
+    end
+    -- exports.vorp_inventory:removeItem(src, beeItemName, amountNeeded) -- Odebrat item
+
+    -- 2. Získání startovací populace
+    local startPop = Config.starter_population or 5000
+
+    -- 3. Aplikace populace
+    hive.population = (hive.population or 0) + startPop
+
+    -- 4. Změna stavu úlu, pokud byl beznadějný (např. populace 0)
+    if hive.substate == 'STARVING' or hive.substate == 'QUEENLESS' or hive.population > 0 then
+        -- Pokud má královnu, resetujeme queenless stav, i když je slabá
+        if hive.queen and hive.queen.alive then
+            hive.substate = 'HEALTHY'
+            hive._queenlessAccum = 0
+        end
+    end
+
+    MarkHiveAsDirty(hiveId)
+
+    Notify(src, ('Do úlu byla vložena populace %d včel. Kolonie se začíná rozvíjet.'):format(startPop), 'success')
 end)
 
 -- AddEventHandler("vorp_inventory:useItem")

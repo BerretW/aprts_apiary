@@ -16,7 +16,11 @@ RegisterCommand('bee_createapiary', function(source, args, rawCommand)
     local floraProfile = {
         clover = 0.8,
         wildflower = 0.6,
-        tree_sap = 0.2
+        tree_sap = 0.2,
+        orange = 0.4,
+        lavender = 0.5,
+        cactus = 0.1
+
     }
 
     local result = MySQL:insert_async([[
