@@ -105,3 +105,109 @@ RegisterCommand("hiveInfo", function(source, args, rawCommand)
     print(json.encode(hive, {indent = true}))
     -- Notify(source, ('Informace o úlu ID %d byly vypsány do konzole serveru.'):format(hiveId), 'success')
 end, false)
+
+-- [[ PŘÍKAZ PRO PŘIKRMENÍ ÚLU ]]
+RegisterCommand('bee_feedhive', function(source, args, rawCommand)
+
+
+    -- 2. Zpracování a validace argumentů
+    local hiveId = tonumber(args[1])
+    local amount = tonumber(args[2])
+
+    if not hiveId or not amount or amount <= 0 then
+        return print('Neplatné argumenty. Použití: /bee_feedhive [id_úlu] [množství]')
+    end
+
+    -- 3. Nalezení úlu
+    local hive = nil
+    for _, apiary in pairs(Apiaries) do
+        if apiary.hives and apiary.hives[hiveId] then
+            hive = apiary.hives[hiveId]
+            break
+        end
+    end
+
+    if not hive then
+        return print(('Úl s ID %d nebyl nalezen.'):format(hiveId))
+    end
+
+    -- 4. Logika přidání potravy
+    -- Dekódování aktuálních zásob medu
+    local honeyStores = json.decode(hive.stores_honey_json or '{}')
+    
+    -- Přidání specifikovaného množství k výchozímu druhu medu (směsný)
+    local defaultHoneyItem = Config.honey_item or "bee_honey_mixed"
+    honeyStores[defaultHoneyItem] = (honeyStores[defaultHoneyItem] or 0) + amount
+
+    -- Aktualizace dat úlu
+    hive.stores_honey_json = json.encode(honeyStores)
+
+    -- Pokud úl hladověl, změníme jeho stav na ZDRAVÝ (pokud má královnu)
+    if hive.substate == 'STARVING' then
+        if hive.queen and hive.queen.alive then
+            hive.substate = 'HEALTHY'
+            print(('Úl ID %d byl přemístěn ze stavu STARVING do stavu HEALTHY díky přikrmování.'):format(hiveId))
+        else
+            print(('Úl ID %d stále nemá živou královnu, takže zůstává ve stavu STARVING.'):format(hiveId))
+        end
+    end
+
+    -- 5. Označení úlu k uložení
+    MarkHiveAsDirty(hiveId)
+
+    -- 6. Oznámení hráči
+   print(('Úl ID %d byl přikrmován o %d jednotek medu.'):format(hiveId, amount))
+    -- Notify(source, ('Úl ID %d byl přikrmován o %d jednotek medu.'):format(hiveId, amount), 'success')
+
+end, false)
+
+-- [[ PŘÍKAZ PRO LÉČENÍ ÚLU ]]
+RegisterCommand('bee_treat_hive', function(source, args, rawCommand)
+
+
+    -- 2. Zpracování a validace argumentů
+    local hiveId = tonumber(args[1])
+    local treatmentName = args[2] -- např. 'bee_treatment_basic' nebo 'bee_treatment_strong'
+
+    if not hiveId or not treatmentName then
+        return print('Neplatné argumenty. Použití: /bee_treat_hive [id_úlu] [název_léčiva]')
+    end
+
+    -- 3. Nalezení úlu
+    local hive, apiary = nil, nil
+    for _, a in pairs(Apiaries) do
+        if a.hives and a.hives[hiveId] then
+            hive = a.hives[hiveId]
+            apiary = a
+            break
+        end
+    end
+
+    if not hive then
+        return print(('Úl s ID %d nebyl nalezen.'):format(hiveId))
+    end
+    
+    -- 4. Kontrola existence léčiva v Configu
+    local treatment = Config.Treatments[treatmentName]
+    if not treatment then
+        return print(('Léčivo "%s" nebylo nalezeno v konfiguraci.'):format(treatmentName))
+    end
+    
+    -- 5. Aplikace efektu léčby
+    local oldMiteLevel = hive.mite_level or 0
+    hive.mite_level = math.max(0, oldMiteLevel - treatment.effectiveness)
+    hive.last_treatment_at = os.date('%Y-%m-%d %H:%M:%S', os.time())
+
+    -- Pokud se hladina kleštíka dostane pod určitou mez, změníme stav na ZDRAVÝ
+    if hive.substate == 'DISEASED' and hive.mite_level < 0.5 then
+        hive.substate = 'HEALTHY'
+        print('Stav úlu byl změněn z "Nemocný" na "Zdravý".')
+    end
+
+    -- 6. Označení úlu k uložení
+    MarkHiveAsDirty(hiveId)
+
+    -- 7. Oznámení hráči
+    print(('Úl ID %d byl úspěšně ošetřen přípravkem "%s". Hladina kleštíka klesla z %.2f na %.2f.'):format(hiveId, treatment.name, oldMiteLevel, hive.mite_level))
+
+end, false)

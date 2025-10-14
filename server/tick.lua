@@ -52,7 +52,7 @@ local function getHive(hiveID)
   return apiary and apiary.hives and apiary.hives[hiveID] or nil, apiaryID, apiary
 end
 
-local function markDirty(hiveId) DirtyHives[hiveId] = true end
+function MarkHiveAsDirty(hiveId) DirtyHives[hiveId] = true end
 
 ---------------------------------------------------------------------
 -- Správa královen
@@ -404,7 +404,7 @@ function SimulateChunkOfHives()
     processHive(hive, apiary, now, days)
 
     -- označit k uložení
-    markDirty(hiveId)
+    MarkHiveAsDirty(hiveId)
 
     ::continue::
   end
