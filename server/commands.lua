@@ -85,3 +85,23 @@ RegisterCommand('bee_createhive', function(source, args, rawCommand)
         Notify(source, 'Nepodařilo se vytvořit úl v DB.', 'error')
     end
 end, false)
+
+RegisterCommand("hiveInfo", function(source, args, rawCommand)
+    local hiveId = tonumber(args[1])
+    if not hiveId then
+        return print('Neplatné ID úlu. Použití: /hiveInfo [id_úlu]')
+    end
+    local hive = nil
+    for _, apiary in pairs(Apiaries) do
+        if apiary.hives and apiary.hives[hiveId] then
+            hive = apiary.hives[hiveId]
+            break
+        end
+    end
+    if not hive then
+        return print('Úl s ID ' .. hiveId .. ' nebyl nalezen.')
+    end
+
+    print(json.encode(hive, {indent = true}))
+    -- Notify(source, ('Informace o úlu ID %d byly vypsány do konzole serveru.'):format(hiveId), 'success')
+end, false)
