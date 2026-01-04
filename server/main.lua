@@ -44,7 +44,14 @@ local function RegisterHiveInventory(fullInventoryId, inventoryName)
     end
     return fullInventoryId
 end
-
+local function ValidateHiveData(hive)
+    if not hive.production.emptyFrames then hive.production.emptyFrames = 0 end
+    -- Fallback pokud by neseděly počty
+    local total = hive.production.filledFrames + hive.production.emptyFrames
+    if total > Config.HiveStats[hive.type].slots then
+        hive.production.emptyFrames = 0 -- Reset přebytku
+    end
+end
 local function CalculateEnvironment(coords)
     local season = "SUMMER" 
     local baseData = Config.Seasons[season] or Config.Seasons["SUMMER"]
@@ -273,16 +280,23 @@ local function ProcessHiveLogic(hive, envData, apiaryId)
         end
     end
 
-    -- 5. PRODUKCE
+
+    -- 5. PRODUKCE MEDU
+    -- Včely pracují pouze, pokud mají PRÁZDNÝ RÁMEK (emptyFrames > 0)
     if envData.temp > 10 and envData.season ~= "WINTER" then
-        local prod = hive.queenGenetics.productivity or 0.5
-        local factor = (hive.stats.population / 1000) * envData.flora * prod
-        local maxFrames = Config.HiveStats[hive.type].slots
-        if hive.production.filledFrames < maxFrames then
+        if hive.production.emptyFrames > 0 then
+            
+            local prod = hive.queenGenetics.productivity or 0.5
+            local factor = (hive.stats.population / 1000) * envData.flora * prod
+            
             hive.production.currentProgress = hive.production.currentProgress + factor
+            
             if hive.production.currentProgress >= 100 then
+                -- HOTOVO: Přeměníme 1 prázdný rámek na 1 plný
+                hive.production.emptyFrames = hive.production.emptyFrames - 1
                 hive.production.filledFrames = hive.production.filledFrames + 1
                 hive.production.currentProgress = 0
+                debugPrint("Úl vyprodukoval med. (Plné: "..hive.production.filledFrames..")")
             end
         end
     end
@@ -465,47 +479,103 @@ AddEventHandler("bees:requestMenuData", function(apiaryId)
     local apiary = Apiaries[apiaryId]
     if not apiary then return end
 
-    -- Příprava dat pro NUI (bez zbytečností)
     local nuiData = {}
     for k, v in pairs(apiary.hives) do
+        ValidateHiveData(v) -- Pojistka
         nuiData[k] = {
             id = v.id,
             hasQueen = v.hasQueen,
             health = v.stats.health,
             population = v.stats.population,
             disease = v.stats.disease,
+            
+            -- Posíláme oba stavy rámků
             filledFrames = v.production.filledFrames,
+            emptyFrames = v.production.emptyFrames, 
+            
             progress = math.floor(v.production.currentProgress),
             maxSlots = Config.HiveStats[v.type].slots,
             queenLifespan = v.queenGenetics.lifespan or 0
         }
     end
-
     TriggerClientEvent("bees:openApiaryMenu", _source, apiaryId, nuiData, Config.MaxHivesPerApiary)
 end)
 
 -- Upravíme existující akce, aby po dokončení poslaly refresh do menu
 local function RefreshClientMenu(source, apiaryId)
-    local apiary = Apiaries[apiaryId]
-    if not apiary then return end
+    -- Zavoláme znovu request logiku pro aktualizaci UI
+    TriggerEvent("bees:requestMenuData", apiaryId) 
+    -- Poznámka: V reálu je lepší mít separátní funkci pro sestavení dat, 
+    -- abychom ji volali z obou míst, ale toto pro stručnost stačí, 
+    -- jen musíme zajistit, aby requestMenuData poslal správný event zpět (updateMenuData).
+    -- ÚPRAVA: Client očekává 'bees:updateMenuData' pro refresh, ne open.
+    -- Takže zde duplikujeme logiku sestavení dat:
     
+    local apiary = Apiaries[apiaryId]
     local nuiData = {}
     for k, v in pairs(apiary.hives) do
+        ValidateHiveData(v)
         nuiData[k] = {
-            id = v.id,
-            hasQueen = v.hasQueen,
-            health = v.stats.health,
-            population = v.stats.population,
-            disease = v.stats.disease,
-            filledFrames = v.production.filledFrames,
+            id = v.id, hasQueen = v.hasQueen, health = v.stats.health,
+            population = v.stats.population, disease = v.stats.disease,
+            filledFrames = v.production.filledFrames, emptyFrames = v.production.emptyFrames,
             progress = math.floor(v.production.currentProgress),
-            maxSlots = Config.HiveStats[v.type].slots,
-            queenLifespan = v.queenGenetics.lifespan or 0
+            maxSlots = Config.HiveStats[v.type].slots, queenLifespan = v.queenGenetics.lifespan or 0
         }
     end
     TriggerClientEvent("bees:updateMenuData", source, nuiData)
 end
 
--- PŘÍKLAD ÚPRAVY JEDNOHO EVENTU (ostatní insertQueen, harvestFrame, addHive uprav podobně):
--- Na konec eventu 'bees:applyMedicine' přidej:
--- RefreshClientMenu(_source, apiaryId)
+
+-- NOVÝ EVENT: VLOŽIT RÁMEK (Insert Frame)
+RegisterServerEvent("bees:insertFrame")
+AddEventHandler("bees:insertFrame", function(apiaryId, hiveId)
+    local _source = source
+    local apiary = Apiaries[apiaryId]
+    if not apiary then return end
+    local hive = apiary.hives[tonumber(hiveId)]
+    ValidateHiveData(hive)
+
+    local totalFrames = hive.production.filledFrames + hive.production.emptyFrames
+    if totalFrames >= Config.HiveStats[hive.type].slots then
+        TriggerClientEvent("vorp:NotifyLeft", _source, "Chyba", "Úl je plný!", "menu_textures", "cross", 4000)
+        return
+    end
+
+    if VORP_INV:subItem(_source, Config.Items.FrameEmpty, 1) then
+        hive.production.emptyFrames = hive.production.emptyFrames + 1
+        TriggerClientEvent("vorp:NotifyLeft", _source, "Včelařství", "Vložen rámek.", "generic_textures", "tick", 3000)
+        SaveApiaryToDB(apiaryId, false)
+        RefreshClientMenu(_source, apiaryId)
+    else
+        TriggerClientEvent("vorp:NotifyLeft", _source, "Chyba", "Nemáš prázdný rámek.", "menu_textures", "cross", 4000)
+    end
+end)
+
+
+-- UPRAVENÝ EVENT: SKLIZEŇ (Harvest Frame)
+-- Nyní pouze vyjme plný rámek (slot zůstane prázdný)
+RegisterServerEvent("bees:harvestFrame")
+AddEventHandler("bees:harvestFrame", function(apiaryId, hiveId)
+    local _source = source
+    local apiary = Apiaries[apiaryId]
+    local hive = apiary.hives[tonumber(hiveId)]
+    
+    if hive.production.filledFrames > 0 then
+        -- Nemusíme odebírat FrameEmpty od hráče, protože rámek už v úlu byl
+        hive.production.filledFrames = hive.production.filledFrames - 1
+        
+        -- Kalkulace kvality
+        local quality = math.floor((hive.queenGenetics.productivity or 0.5) * 100)
+        local metadata = { description = "Kvalita: " .. quality .. "%", quality = quality }
+        
+        -- Dáme hráči plný rámek
+        VORP_INV:addItem(_source, Config.Items.FrameFull, 1, metadata)
+        
+        TriggerClientEvent("vorp:NotifyLeft", _source, "Včelařství", "Rámek vyjmut.", "generic_textures", "tick", 4000)
+        SaveApiaryToDB(apiaryId, false)
+        RefreshClientMenu(_source, apiaryId)
+    else
+        TriggerClientEvent("vorp:NotifyLeft", _source, "Info", "Žádný med k odběru.", "menu_textures", "cross", 4000)
+    end
+end)

@@ -138,34 +138,49 @@ function renderDetails(id) {
     document.getElementById('barProd').style.width = prod + "%";
     
     document.getElementById('lblFrames').innerText = `${hive.filledFrames} / ${hive.maxSlots}`;
-    let visualContainer = document.getElementById('visualHive');
-    visualContainer.innerHTML = ''; // Vyčistit staré
-        for (let i = 0; i < hive.maxSlots; i++) {
+
+
+let visualContainer = document.getElementById('visualHive');
+    visualContainer.innerHTML = ''; 
+
+    // Počítadla pro smyčku
+    let fullCount = hive.filledFrames;
+    let emptyCount = hive.emptyFrames; // Rámky vložené, ale bez medu
+
+    for (let i = 0; i < hive.maxSlots; i++) {
         let slot = document.createElement('div');
         slot.className = 'frame-slot';
         
-        // Pokud je index menší než počet plných rámků, je tento slot plný
-        if (i < hive.filledFrames) {
+        if (fullCount > 0) {
+            // Priorita 1: Plné rámky
             slot.classList.add('full');
+            fullCount--;
+        } else if (emptyCount > 0) {
+            // Priorita 2: Vložené prázdné rámky
+            slot.classList.add('installed');
+            emptyCount--;
+        } else {
+            // Zbytek: Prázdné sloty (ničím neoznačujeme, zůstane dashed border)
         }
         
         visualContainer.appendChild(slot);
     }
     
-    // Aktualizujeme i starý textový label pro jistotu (pokud ho tam ještě máš v bars-section)
-    let textLabel = document.getElementById('lblFrames');
-    if(textLabel) textLabel.innerText = `${hive.filledFrames} / ${hive.maxSlots}`;
-    
+    // Textový přehled (aktualizovaný)
+    let totalInstalled = hive.filledFrames + hive.emptyFrames;
+    if(document.getElementById('lblFrames')) {
+        document.getElementById('lblFrames').innerText = `${hive.filledFrames} Plné / ${totalInstalled} Vložené`;
+    }
+
     // Buttons Logic
     // Inventář vždy povolen
     
-    // Královna jen když chybí
-    toggleBtn('btnQueen', !hive.hasQueen);
+toggleBtn('btnInsertFrame', totalInstalled < hive.maxSlots);
     
-    // Sklizeň jen když je co (aspoň 1 rámek)
+    // Vyjmout lze jen plné (nebo bychom mohli dovolit vyjmout i prázdné, ale zatím řešíme sklizeň)
     toggleBtn('btnHarvest', hive.filledFrames > 0);
     
-    // Lék jen když je nemoc
+    toggleBtn('btnQueen', !hive.hasQueen);
     toggleBtn('btnCure', hive.disease != null);
 }
 

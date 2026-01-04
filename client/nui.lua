@@ -76,3 +76,8 @@ RegisterNetEvent("bees:updateMenuData", function(hivesData)
         })
     end
 end)
+
+RegisterNUICallback("insertFrame", function(data, cb)
+    TriggerServerEvent("bees:insertFrame", data.apiaryId, data.hiveId)
+    cb("ok")
+end)

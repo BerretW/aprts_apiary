@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="cs">
+
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="style.css">
@@ -7,10 +8,11 @@
     <!-- Import hezčích fontů -->
     <link href="https://fonts.googleapis.com/css2?family=Crete+Round&family=Rye&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div id="app" style="display:none;">
         <div class="book-container">
-            
+
             <!-- LEVÁ STRANA: SEZNAM -->
             <div class="page left-page">
                 <div class="page-header">
@@ -28,7 +30,7 @@
             <!-- PRAVÁ STRANA: DETAIL -->
             <div class="page right-page">
                 <button class="close-btn" onclick="closeMenu()">✖</button>
-                
+
                 <div id="hiveDetails" style="display:none; height: 100%;">
                     <div class="page-header">
                         <h2 id="detailTitle">Úl #1</h2>
@@ -62,11 +64,11 @@
                                 <div class="progress-fill health" id="barHealth" style="width: 100%;"></div>
                             </div>
                         </div>
-<div class="hive-visual-section">
-    <label>Stav Rámků v Úlu</label>
-    <!-- Zde se vygenerují rámky -->
-    <div id="visualHive" class="hive-rack"></div>
-</div>
+                        <div class="hive-visual-section">
+                            <label>Stav Rámků v Úlu</label>
+                            <!-- Zde se vygenerují rámky -->
+                            <div id="visualHive" class="hive-rack"></div>
+                        </div>
                         <div class="bar-row">
                             <div class="bar-label">
                                 <span>Produkce Medu</span>
@@ -85,8 +87,16 @@
 
                     <div class="actions-grid">
                         <button id="btnInv" class="action-btn" onclick="action('openInventory')">📦 Inventář</button>
-                        <button id="btnQueen" class="action-btn" onclick="action('insertQueen')">👑 Vložit Královnu</button>
-                        <button id="btnHarvest" class="action-btn" onclick="action('harvest')">🍯 Vyjmout Rámek</button>
+                        <button id="btnQueen" class="action-btn" onclick="action('insertQueen')">👑 Vložit
+                            Královnu</button>
+
+                        <!-- NOVÉ TLAČÍTKO: VLOŽIT RÁMEK -->
+                        <button id="btnInsertFrame" class="action-btn" onclick="action('insertFrame')">🔲 Vložit
+                            Rámek</button>
+
+                        <!-- Upravené tlačítko pro sklizeň (už to není výměna) -->
+                        <button id="btnHarvest" class="action-btn" onclick="action('harvest')">🍯 Vyjmout Med</button>
+
                         <button id="btnCure" class="action-btn" onclick="action('cure')">💊 Podat Lék</button>
                     </div>
                 </div>
@@ -96,9 +106,10 @@
                     <p>Vyberte úl ze seznamu<br>na levé straně.</p>
                 </div>
             </div>
-            
+
         </div>
     </div>
     <script src="script.js"></script>
 </body>
+
 </html>
