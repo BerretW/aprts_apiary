@@ -140,46 +140,59 @@ function renderDetails(id) {
     document.getElementById('lblFrames').innerText = `${hive.filledFrames} / ${hive.maxSlots}`;
 
 
-let visualContainer = document.getElementById('visualHive');
+ let visualContainer = document.getElementById('visualHive');
     visualContainer.innerHTML = ''; 
 
-    // Počítadla pro smyčku
-    let fullCount = hive.filledFrames;
-    let emptyCount = hive.emptyFrames; // Rámky vložené, ale bez medu
+    // Kolik máme hotových a kolik prázdných čekajících
+    let filledCount = hive.filledFrames;
+    let emptyCount = hive.emptyFrames;
+    let totalInstalled = filledCount + emptyCount;
 
+    // Projdeme všechny sloty (např. 0, 1, 2, 3)
     for (let i = 0; i < hive.maxSlots; i++) {
         let slot = document.createElement('div');
         slot.className = 'frame-slot';
         
-        if (fullCount > 0) {
-            // Priorita 1: Plné rámky
+        // --- LOGIKA STAVŮ ---
+        
+        if (i < filledCount) {
+            // 1. UŽ JE PLNÝ (Hotovo z dřívějška)
             slot.classList.add('full');
-            fullCount--;
-        } else if (emptyCount > 0) {
-            // Priorita 2: Vložené prázdné rámky
+            slot.setAttribute('data-tooltip', 'Plný Medu (100%)');
+            
+        } else if (i === filledCount && emptyCount > 0) {
+            // 2. PRÁVĚ SE PLNÍ (Tohle je ten aktivní!)
+            // Pokud máme ještě prázdné rámky, ten první na řadě (index == filledCount) se plní.
+            slot.classList.add('filling');
+            
+            // Nastavíme CSS proměnnou pro výšku hladiny (0-100%)
+            slot.style.setProperty('--fill-pct', hive.progress + '%');
+            
+            // Tooltip ukazuje aktuální %
+            slot.setAttribute('data-tooltip', `Plnění: ${hive.progress}%`);
+            
+        } else if (i < totalInstalled) {
+            // 3. JE VLOŽENÝ, ALE ČEKÁ VE FRONTĚ (Prázdný)
             slot.classList.add('installed');
-            emptyCount--;
+            slot.setAttribute('data-tooltip', 'Připraven (0%)');
+            
         } else {
-            // Zbytek: Prázdné sloty (ničím neoznačujeme, zůstane dashed border)
+            // 4. CHYBÍ (Nevložený)
+            slot.setAttribute('data-tooltip', 'Prázdný Slot');
         }
         
         visualContainer.appendChild(slot);
     }
     
-    // Textový přehled (aktualizovaný)
-    let totalInstalled = hive.filledFrames + hive.emptyFrames;
+    // Aktualizace textu pod rámky
     if(document.getElementById('lblFrames')) {
-        document.getElementById('lblFrames').innerText = `${hive.filledFrames} Plné / ${totalInstalled} Vložené`;
+        document.getElementById('lblFrames').innerText = `Stav rámků: ${filledCount} Plné / ${totalInstalled} Vložené`;
     }
 
-    // Buttons Logic
-    // Inventář vždy povolen
-    
-toggleBtn('btnInsertFrame', totalInstalled < hive.maxSlots);
-    
-    // Vyjmout lze jen plné (nebo bychom mohli dovolit vyjmout i prázdné, ale zatím řešíme sklizeň)
+    // --- TLAČÍTKA ---
+    // Logika tlačítek zůstává, jen CSS se postará o layout
+    toggleBtn('btnInsertFrame', totalInstalled < hive.maxSlots);
     toggleBtn('btnHarvest', hive.filledFrames > 0);
-    
     toggleBtn('btnQueen', !hive.hasQueen);
     toggleBtn('btnCure', hive.disease != null);
 }

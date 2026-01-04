@@ -1,8 +1,8 @@
 Config = {}
 
-Config.Debug = true
-Config.UpdateInterval = 60000 * 10 
-Config.SaveInterval = 60000 * 30 
+Config.Debug = false
+Config.UpdateInterval = 1000 * 10 
+Config.SaveInterval = 10000 * 30 
 
 Config.MaxHivesPerApiary = 4 -- NOVÉ: Kolik úlů se vejde na jedno stanoviště
 

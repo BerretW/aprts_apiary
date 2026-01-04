@@ -1,358 +1,259 @@
-@import url('https://fonts.googleapis.com/css2?family=Crete+Round&family=Rye&display=swap');
-
-/* --- GLOBÁLNÍ NASTAVENÍ --- */
-* {
-    box-sizing: border-box;
-    user-select: none;
+:root {
+    --paper-bg: #fdfbf7;
+    --ink-color: #2c1e14;
+    --wood-dark: #3e2723;
+    --wood-light: #5d4037;
+    --honey-gold: #ffb300;
+    --honey-dark: #ff8f00;
+    --red-ink: #b71c1c;
+    --green-ink: #2e7d32;
+    --frame-bg: #d7ccc8; /* Barva prázdného dřevěného rámku */
+    
+    --font-header: 'Rye', serif;
+    --font-body: 'Cormorant Garamond', serif;
+    --font-mono: 'Special Elite', monospace;
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Crete Round', serif; /* Patkové písmo pro text */
-    color: #2c1a16; /* Tmavě hnědá (inkoust) */
-    overflow: hidden;
-}
-
-/* --- POZADÍ APLIKACE (Overlay) --- */
-#app {
-    position: absolute;
-    width: 100%;
-    height: 100%;
+    background: transparent;
+    margin: 0; padding: 0;
+    height: 100vh;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.6); /* Ztmavení hry na pozadí */
+    align-items: center; justify-content: center;
+    user-select: none;
+    font-family: var(--font-body);
+    color: var(--ink-color);
 }
 
-/* --- KONTEJNER KNIHY --- */
-.book-container {
+/* --- KNIHA (Zvětšena výška na 720px) --- */
+.book-cover {
     width: 900px;
-    height: 600px;
-    background-color: #f3e5ce; /* Základní barva pergamenu */
-    /* Gradient simuluje zahnutí stránek ke středu */
-    background-image: linear-gradient(to right, #e0d0b0 0%, #f3e5ce 5%, #f3e5ce 48%, #cfb995 50%, #f3e5ce 52%, #f3e5ce 95%, #e0d0b0 100%);
-    box-shadow: 
-        0 0 30px rgba(0,0,0,0.8), /* Vnější stín */
-        inset 0 0 60px rgba(62, 39, 35, 0.15); /* Vnitřní stín pro "starý" vzhled */
-    border-radius: 4px;
+    height: 720px; 
+    background-color: #f2eecb;
+    /* Efekt starého papíru */
+    background-image: 
+        linear-gradient(90deg, rgba(0,0,0,0.05) 0%, transparent 5%, transparent 95%, rgba(0,0,0,0.05) 100%),
+        url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZjJlZWNiIi8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNkM2M3YTMiIG9wYWNpdHk9IjAuNSIvPgo8L3N2Zz4=');
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 0 100px rgba(62, 39, 35, 0.2);
     display: flex;
-    padding: 20px;
+    border-radius: 5px;
     position: relative;
-    border: 1px solid #5d4037;
+    border: 1px solid #d7ccc8;
 }
 
-/* Středový přehyb knihy */
-.book-container::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 10px;
-    bottom: 10px;
-    width: 1px;
-    background: rgba(62, 39, 35, 0.3);
-    border-right: 1px solid rgba(255, 255, 255, 0.3);
-    transform: translateX(-50%);
+.book-spine {
+    position: absolute; left: 50%; top: 0; bottom: 0;
+    width: 4px; background: rgba(0,0,0,0.1);
+    transform: translateX(-50%); z-index: 10;
 }
 
-/* --- STRÁNKY --- */
 .page {
-    flex: 1;
-    padding: 10px 20px;
-    display: flex;
-    flex-direction: column;
+    flex: 1; padding: 30px 40px; 
+    position: relative; display: flex; flex-direction: column;
 }
 
-.left-page { padding-right: 40px; } /* Místo pro hřbet */
-.right-page { padding-left: 40px; position: relative; }
+/* --- DEKORACE --- */
+.honey-stain {
+    position: absolute; top: 0; right: 0;
+    width: 100px; height: 100px;
+    background: radial-gradient(circle, rgba(255,179,0,0.2) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+}
 
-/* Typografie */
+.divider-fancy {
+    height: 1px;
+    background: radial-gradient(circle, var(--wood-light) 0%, transparent 100%);
+    margin: 15px 0; opacity: 0.5;
+}
+
+/* --- TYPOGRAFIE --- */
 h2 {
-    font-family: 'Rye', serif; /* Western nadpis */
-    margin: 0 0 10px 0;
-    font-size: 26px;
-    color: #3e2723;
-    text-align: center;
-    border-bottom: 2px solid #3e2723;
-    padding-bottom: 10px;
+    font-family: var(--font-header); text-align: center; margin: 0;
+    font-size: 26px; color: var(--wood-dark);
+    text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+}
+.ink-line {
+    height: 2px; background: var(--ink-color); width: 60%;
+    margin: 10px auto; border-radius: 50%; opacity: 0.7;
 }
 
-.divider {
-    height: 2px;
-    background: radial-gradient(circle, #3e2723 0%, transparent 100%);
-    margin: 15px 0;
-    opacity: 0.6;
+/* --- LEVÁ STRANA (SEZNAM) --- */
+.hive-list-container {
+    flex: 1; overflow-y: auto; margin: 15px 0;
+    border: 1px solid rgba(0,0,0,0.1); padding: 5px;
+    background: rgba(255,255,255,0.3);
 }
-
-/* --- LEVÁ STRANA: SEZNAM --- */
-.hive-list {
-    flex: 1;
-    overflow-y: auto;
-    border: 1px solid rgba(62, 39, 35, 0.2);
-    padding: 5px;
-    background: rgba(255, 255, 255, 0.2);
-    margin-bottom: 10px;
-}
-
 .hive-item {
-    padding: 12px 15px;
-    margin-bottom: 4px;
-    background: rgba(255, 255, 255, 0.4);
-    border: 1px solid transparent;
-    cursor: pointer;
-    font-size: 18px;
-    display: flex;
-    justify-content: space-between;
+    font-family: var(--font-mono); padding: 10px 15px; margin-bottom: 5px;
+    cursor: pointer; border-bottom: 1px dashed #a1887f;
+    display: flex; justify-content: space-between; font-size: 18px;
     transition: all 0.2s;
 }
-
-.hive-item:hover {
-    background: #fff;
-    border-color: #8d6e63;
-    transform: translateX(2px);
-}
-
+.hive-item:hover { background: rgba(62, 39, 35, 0.05); padding-left: 18px; }
 .hive-item.active {
-    background: #3e2723;
-    color: #f3e5ce;
-    border-color: #3e2723;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
-}
-
-/* --- PRAVÁ STRANA: DETAILY --- */
-.status-badge {
-    display: block;
-    text-align: center;
-    font-size: 14px;
-    margin-top: -5px;
-    margin-bottom: 10px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-.status-ok { color: #2e7d32; }
-.status-bad { color: #c62828; }
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-.stat-box {
-    background: rgba(62, 39, 35, 0.05);
-    padding: 8px;
-    border: 1px solid rgba(62, 39, 35, 0.2);
-    text-align: center;
-    border-radius: 3px;
-}
-
-.stat-box label {
-    display: block;
-    font-size: 12px;
-    text-transform: uppercase;
-    opacity: 0.7;
-    margin-bottom: 2px;
-}
-
-.stat-box .value { font-size: 20px; font-weight: bold; }
-.stat-box .large-num { font-family: 'Rye', serif; font-size: 24px; }
-.stat-box small { font-size: 11px; opacity: 0.8; }
-
-/* --- VIZUALIZACE RÁMKŮ (BEDÝNKA) --- */
-.hive-visual-section {
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.hive-visual-section label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    text-transform: uppercase;
-    font-weight: bold;
-    color: #4e342e;
-}
-
-.hive-rack {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    padding: 15px;
-    background: rgba(62, 39, 35, 0.1);
-    border: 2px solid #5d4037;
-    border-radius: 4px;
-    box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
-}
-
-/* STAV 1: PRÁZDNÝ SLOT (DÍRA) */
-.frame-slot {
-    width: 50px;
-    height: 80px;
-    border: 2px dashed #8d6e63;
-    border-radius: 3px;
-    background: rgba(0, 0, 0, 0.05);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    opacity: 0.7;
-    transition: all 0.3s;
-}
-/* Tooltip */
-.frame-slot:hover::after {
-    content: 'Prázdné Místo';
-    position: absolute;
-    bottom: -30px;
-    font-size: 11px;
-    background: #3e2723;
-    color: #fff;
-    padding: 4px 6px;
-    border-radius: 4px;
-    white-space: nowrap;
-    z-index: 10;
-    pointer-events: none;
-}
-
-/* STAV 2: VLOŽENÝ RÁMEK (DŘEVO) */
-.frame-slot.installed {
-    border: 2px solid #5d4037;
-    /* Pruhovaný gradient simulující dřevo/vosk */
-    background: repeating-linear-gradient(
-      45deg,
-      #d7ccc8,
-      #d7ccc8 5px,
-      #bcaaa4 5px,
-      #bcaaa4 10px
-    );
-    opacity: 1;
-    box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-}
-.frame-slot.installed:hover::after { content: 'Prázdný Rámek (Včely pracují)'; }
-
-/* STAV 3: PLNÝ RÁMEK (MED) */
-.frame-slot.full {
-    border: 2px solid #e65100;
-    /* Zlatý gradient */
-    background: linear-gradient(135deg, #ffca28 0%, #ff6f00 100%);
-    box-shadow: 0 0 10px rgba(255, 160, 0, 0.6);
-    cursor: pointer;
-    opacity: 1;
-}
-.frame-slot.full::before {
-    content: '🍯';
-    font-size: 24px;
-    text-shadow: 0 2px 2px rgba(0,0,0,0.3);
-}
-.frame-slot.full:hover::after { content: 'PLNÝ MEDU (Připraveno)'; background: #e65100; }
-
-/* --- PROGRESS BARY --- */
-.bars-section {
-    margin-bottom: 20px;
-    padding: 0 10px;
-}
-.bar-row { margin-bottom: 12px; }
-.bar-label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    margin-bottom: 4px;
-    font-weight: bold;
-}
-.progress-track {
-    height: 12px;
-    background: rgba(0,0,0,0.1);
-    border-radius: 6px;
-    overflow: hidden;
-    border: 1px solid rgba(0,0,0,0.15);
-}
-.progress-fill { height: 100%; transition: width 0.5s ease; }
-.progress-fill.health { background: #c62828; } /* Červená */
-.progress-fill.honey { background: #ff8f00; } /* Oranžová */
-
-.frames-info {
-    text-align: right;
-    font-size: 11px;
-    margin-top: 2px;
-    font-style: italic;
-    opacity: 0.8;
+    font-weight: bold; color: var(--wood-dark);
+    background: rgba(255, 179, 0, 0.2);
+    border: 1px solid var(--wood-light);
+    transform: rotate(-0.5deg);
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
 }
 
 /* --- TLAČÍTKA --- */
-.actions-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+.btn-wood {
+    width: 100%; padding: 12px;
+    background: linear-gradient(to bottom, #5d4037, #3e2723);
+    color: #fff; border: 2px solid #281a16;
+    font-family: var(--font-header); font-size: 16px;
+    cursor: pointer; border-radius: 2px;
+    box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+    text-shadow: 0 -1px 0 rgba(0,0,0,0.5);
 }
+.btn-wood:hover { filter: brightness(1.1); }
+.btn-wood:disabled { background: #555; filter: grayscale(1); cursor: not-allowed; }
 
-.action-btn {
-    background: #5d4037;
-    color: #f3e5ce;
-    border: 1px solid #3e2723;
-    padding: 10px;
-    font-family: 'Crete Round', serif;
-    font-size: 14px;
-    cursor: pointer;
-    border-radius: 2px;
-    transition: all 0.2s;
-    box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
-}
-
-.action-btn:hover:not(:disabled) {
-    background: #3e2723;
-    transform: translateY(-1px);
-}
-
-.action-btn:active:not(:disabled) {
-    transform: translateY(1px);
-    box-shadow: none;
-}
-
-.action-btn:disabled {
-    background: #8d6e63;
-    opacity: 0.6;
-    cursor: not-allowed;
-    filter: grayscale(0.8);
-}
-
-/* Tlačítko Přistavět (na levé straně) */
-.build-btn {
-    width: 100%;
-    margin-top: 15px;
-    background: #2e7d32; /* Zelená */
-    border-color: #1b5e20;
-    font-weight: bold;
-}
-.build-btn:hover:not(:disabled) { background: #1b5e20; }
-
-/* Tlačítko Zavřít (X) */
+/* --- PRAVÁ STRANA (DETAIL) --- */
 .close-btn {
-    position: absolute;
-    top: -5px;
-    right: 0;
-    background: none;
-    border: none;
-    font-size: 28px;
-    cursor: pointer;
-    color: #8b0000;
-    font-family: sans-serif;
+    position: absolute; top: 20px; right: 20px;
+    background: none; border: none; font-size: 24px; cursor: pointer; color: var(--wood-dark);
+}
+
+.status-wrapper { text-align: center; margin-bottom: 10px; }
+.status-stamp {
+    border: 2px solid currentColor; padding: 2px 10px; border-radius: 4px;
+    font-family: var(--font-mono); font-weight: bold; font-size: 13px;
+    text-transform: uppercase; letter-spacing: 1px;
+    transform: rotate(-2deg); display: inline-block;
+}
+.status-ok { color: var(--green-ink); border-color: var(--green-ink); }
+.status-bad { color: var(--red-ink); border-color: var(--red-ink); }
+
+/* STATS BOX */
+.paper-box {
+    background: rgba(255,255,255,0.5); border: 1px solid #bcaaa4;
+    padding: 10px; display: flex; justify-content: space-around;
+    margin-bottom: 15px; box-shadow: 2px 2px 0 rgba(0,0,0,0.05);
+}
+.stat-item { text-align: center; flex: 1; }
+.separator-left { border-left: 1px dashed #bcaaa4; }
+.stat-item label { font-family: var(--font-mono); font-size: 11px; display: block; color: #5d4037; }
+.stat-item .value { font-family: var(--font-header); font-size: 18px; }
+.stat-item .large-num { font-size: 22px; }
+
+/* BARS */
+.bars-section { display: flex; flex-direction: column; gap: 10px; }
+.bar-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-bottom: 2px; }
+.bar-frame {
+    height: 10px; background: #d7ccc8; border: 1px solid #8d6e63;
+    border-radius: 5px; overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+}
+.bar-fill { height: 100%; transition: width 0.5s ease; }
+.health-fill { background: linear-gradient(to bottom, #d32f2f, #b71c1c); }
+
+/* --- VIZUÁLNÍ RACK A RÁMKY (MAGIE) --- */
+.visual-section { text-align: center; margin: 15px 0; }
+.section-title { font-family: var(--font-header); color: var(--wood-light); font-size: 15px; margin-bottom: 5px; display: block; }
+.frames-info { margin-top: 5px; font-size: 14px; color: #5d4037; font-style: italic; }
+
+.hive-rack-wood {
+    background: #5d4037; padding: 10px 15px; border-radius: 4px;
+    display: inline-flex; gap: 10px; border: 2px solid #3e2723;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+.frame-slot {
+    width: 35px; height: 60px;
+    background: #2a1e16; /* Tmavá díra */
+    border: 2px dashed #6d4c41;
+    position: relative;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.8);
     transition: transform 0.2s;
 }
-.close-btn:hover { transform: scale(1.2); }
 
-/* --- SCROLLBAR --- */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: rgba(62, 39, 35, 0.05); }
-::-webkit-scrollbar-thumb { background: #8d6e63; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #6d4c41; }
+/* 1. Nainstalovaný, prázdný rámek (dřevo) */
+.frame-slot.installed {
+    background: var(--frame-bg);
+    border: 2px solid #8d6e63;
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,0.1);
+}
+.frame-slot.installed::after {
+    /* Vnitřní detail rámku */
+    content: ''; position: absolute;
+    top: 2px; bottom: 2px; left: 2px; right: 2px;
+    border: 1px solid #a1887f; pointer-events: none;
+}
 
-/* --- MÍSTO PRO "NIC NEVYBRÁNO" --- */
+/* 2. PLNĚNÝ RÁMEK (Animace) */
+.frame-slot.filling {
+    border: 2px solid #8d6e63;
+    /* Gradient zespoda nahoru: Zlatá -> Dřevěná */
+    background: linear-gradient(to top, 
+        var(--honey-gold) var(--fill-pct), 
+        var(--frame-bg) var(--fill-pct)
+    );
+}
+
+/* 3. PLNÝ RÁMEK (Zlatý) */
+.frame-slot.full {
+    background: linear-gradient(45deg, #ffb300, #ff8f00);
+    border: 2px solid #e65100;
+    box-shadow: 0 0 5px rgba(255, 179, 0, 0.5);
+}
+/* Symbol plástve */
+.frame-slot.full::before {
+    content: '⬢'; position: absolute;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    color: rgba(62, 39, 35, 0.2); font-size: 18px;
+}
+
+/* --- TOOLTIPS (Bubliny po najetí) --- */
+.frame-slot::before {
+    /* Přepíšeme ::before pro tooltip u všech kromě .full (ten má plástev) */
+    /* Pro zjednodušení používáme zvláštní atribut pro tooltip element, ale v čistém CSS to uděláme přes ::after pro tooltip text */
+}
+
+/* Tooltip text (používáme atribut data-tooltip) */
+.frame-slot[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 110%; left: 50%; transform: translateX(-50%);
+    background: #3e2723; color: #fff;
+    padding: 5px 8px; border-radius: 3px;
+    font-family: var(--font-body); font-size: 14px;
+    white-space: nowrap; pointer-events: none;
+    z-index: 100; border: 1px solid #a1887f;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    /* Reset stylů z .installed::after */
+    top: auto; right: auto; border: 1px solid #a1887f; height: auto; width: auto;
+}
+
+.frame-slot:hover { transform: scale(1.05); cursor: help; }
+
+
+/* --- BUTTON GRID --- */
+.actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dva sloupce */
+    gap: 8px; margin-top: 10px;
+}
+.btn-full { grid-column: span 2; } 
+
+.btn-paper {
+    background: #efebe9; border: 1px solid #a1887f;
+    padding: 8px; font-weight: bold; font-size: 15px;
+    font-family: var(--font-body);
+    color: var(--wood-dark); cursor: pointer;
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    transition: all 0.2s;
+}
+.btn-paper:hover:enabled { background: #fff; transform: translateY(-1px); box-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+.btn-paper:active:enabled { transform: translateY(1px); box-shadow: inset 1px 1px 2px rgba(0,0,0,0.1); }
+
+.honey-btn { background: #fff8e1; border-color: var(--honey-dark); color: var(--honey-dark); }
+.red-ink { color: var(--red-ink); }
+
 .empty-state {
-    text-align: center;
-    margin-top: 120px;
-    font-size: 18px;
-    opacity: 0.6;
-    font-style: italic;
-    color: #5d4037;
+    text-align: center; margin-top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--font-mono); color: #8d6e63;
 }
