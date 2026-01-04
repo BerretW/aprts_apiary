@@ -1,0 +1,321 @@
+* {
+    box-sizing: border-box;
+    user-select: none;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Crete Round', serif; /* Čitelný serif font */
+}
+
+#app {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.6); /* Tmavší pozadí hry */
+}
+
+/* Kniha / Zápisník */
+.book-container {
+    width: 900px;
+    height: 600px;
+    background-color: #f3e5ce; /* Barva papíru */
+    background-image: linear-gradient(to right, #e0d0b0 0%, #f3e5ce 5%, #f3e5ce 95%, #e0d0b0 100%);
+    box-shadow: 
+        0 0 30px rgba(0,0,0,0.8),
+        inset 0 0 100px rgba(62, 39, 35, 0.2);
+    border-radius: 4px;
+    display: flex;
+    padding: 20px;
+    position: relative;
+    color: #2c1a16;
+}
+
+/* Středový přehyb knihy */
+.book-container::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 20px;
+    bottom: 20px;
+    width: 2px;
+    background: rgba(62, 39, 35, 0.2);
+    transform: translateX(-50%);
+}
+
+.page {
+    flex: 1;
+    padding: 10px 30px;
+    display: flex;
+    flex-direction: column;
+}
+
+.left-page { padding-right: 40px; }
+.right-page { padding-left: 40px; position: relative; }
+
+/* Typografie */
+h2 {
+    font-family: 'Rye', serif; /* Ozdobný font pro nadpisy */
+    margin: 0 0 10px 0;
+    font-size: 28px;
+    color: #3e2723;
+    text-align: center;
+}
+
+.divider {
+    height: 2px;
+    background: #3e2723;
+    margin-bottom: 20px;
+    opacity: 0.8;
+    border-radius: 50%;
+}
+
+/* Seznam úlů */
+.hive-list {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid rgba(62, 39, 35, 0.2);
+    padding: 5px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.hive-item {
+    padding: 15px;
+    margin-bottom: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    justify-content: space-between;
+    transition: all 0.2s;
+}
+
+.hive-item:hover {
+    background: #fff;
+    border-color: #8d6e63;
+}
+
+.hive-item.active {
+    background: #3e2723;
+    color: #f3e5ce;
+    border-color: #3e2723;
+}
+
+/* Detaily */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.stat-box {
+    background: rgba(62, 39, 35, 0.05);
+    padding: 10px;
+    border: 1px solid rgba(62, 39, 35, 0.2);
+    text-align: center;
+}
+
+.stat-box label {
+    display: block;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.7;
+    margin-bottom: 5px;
+}
+
+.stat-box .value {
+    font-size: 22px;
+    font-weight: bold;
+}
+.stat-box .large-num {
+    font-family: 'Rye', serif;
+    font-size: 26px;
+}
+
+/* Progress Bars */
+.bars-section {
+    margin-bottom: 20px;
+    background: rgba(255,255,255,0.4);
+    padding: 15px;
+    border: 1px dashed rgba(62, 39, 35, 0.3);
+}
+
+.bar-row { margin-bottom: 15px; }
+
+.bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.progress-track {
+    height: 14px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 7px;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.progress-fill { height: 100%; transition: width 0.5s ease; }
+.progress-fill.health { background: #d32f2f; }
+.progress-fill.honey { background: #ffa000; }
+
+.frames-info {
+    text-align: right;
+    font-size: 12px;
+    margin-top: 2px;
+    opacity: 0.8;
+}
+
+/* Tlačítka */
+.actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.action-btn {
+    background: #5d4037;
+    color: #f3e5ce;
+    border: none;
+    padding: 12px;
+    font-family: 'Crete Round', serif;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-radius: 2px;
+    border: 1px solid #3e2723;
+}
+
+.action-btn:hover:not(:disabled) { background: #3e2723; }
+.action-btn:disabled {
+    background: #8d6e63;
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}
+
+.build-btn {
+    width: 100%;
+    margin-top: 10px;
+    background: #2e7d32;
+    border-color: #1b5e20;
+}
+.build-btn:hover { background: #1b5e20; }
+
+.close-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #8b0000;
+}
+.close-btn:hover { transform: scale(1.1); }
+
+/* Status Badge */
+.status-badge {
+    display: block;
+    text-align: center;
+    font-size: 14px;
+    margin-top: -5px;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+.status-ok { color: #2e7d32; }
+.status-bad { color: #c62828; }
+
+.empty-state {
+    text-align: center;
+    margin-top: 100px;
+    font-size: 18px;
+    opacity: 0.5;
+    font-style: italic;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
+::-webkit-scrollbar-thumb { background: #8d6e63; border-radius: 4px; }
+
+/* Vizualizace Rámků */
+.hive-visual-section {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.hive-visual-section label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #3e2723;
+    opacity: 0.8;
+}
+
+.hive-rack {
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* Mezera mezi rámky */
+    padding: 15px;
+    background: rgba(62, 39, 35, 0.1); /* Tmavé pozadí "úlu" */
+    border: 2px solid #5d4037;
+    border-radius: 4px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+}
+
+/* Jeden Rámek */
+.frame-slot {
+    width: 50px;
+    height: 80px;
+    border: 2px dashed #8d6e63; /* Přerušovaná čára = prázdné místo */
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+/* Efekt po najetí myší */
+.frame-slot::after {
+    content: 'Prázdný';
+    position: absolute;
+    bottom: -20px;
+    font-size: 10px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+    white-space: nowrap;
+}
+.frame-slot:hover::after { opacity: 1; }
+
+/* PLNÝ RÁMEK (MED) */
+.frame-slot.full {
+    border: 2px solid #e65100; /* Tmavě oranžový okraj */
+    background: linear-gradient(135deg, #ffca28 0%, #ff6f00 100%); /* Zlatá medová barva */
+    box-shadow: 0 0 10px rgba(255, 160, 0, 0.5);
+    cursor: help;
+}
+
+.frame-slot.full::after { content: 'Plný Medu'; color: #e65100; font-weight: bold; }
+
+/* Ikona medu uvnitř plného rámku (volitelné) */
+.frame-slot.full::before {
+    content: '🍯';
+    font-size: 24px;
+    text-shadow: 0 2px 2px rgba(0,0,0,0.2);
+}

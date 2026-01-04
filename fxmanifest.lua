@@ -17,8 +17,15 @@ server_scripts {
 
 client_scripts {
     'client/main.lua',
-    'client/vizual.lua'
+    'client/vizual.lua',
+    'client/nui.lua'
 }
-
+ui_page 'html/index.html'
+files {
+    'html/*.js',
+    'html/*.css',
+    'html/*.html',
+    'html/images/*'
+}
 dependency 'vorp_core'
 dependency 'vorp_inventory'

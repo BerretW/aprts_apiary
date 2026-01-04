@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Import hezčích fontů -->
+    <link href="https://fonts.googleapis.com/css2?family=Crete+Round&family=Rye&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app" style="display:none;">
+        <div class="book-container">
+            
+            <!-- LEVÁ STRANA: SEZNAM -->
+            <div class="page left-page">
+                <div class="page-header">
+                    <h2>Seznam Úlů</h2>
+                    <div class="divider"></div>
+                </div>
+                <div class="hive-list" id="hiveList">
+                    <!-- Generováno JS -->
+                </div>
+                <div class="page-footer">
+                    <button id="btnBuild" class="action-btn build-btn" onclick="action('build')">+ Přistavět Úl</button>
+                </div>
+            </div>
+
+            <!-- PRAVÁ STRANA: DETAIL -->
+            <div class="page right-page">
+                <button class="close-btn" onclick="closeMenu()">✖</button>
+                
+                <div id="hiveDetails" style="display:none; height: 100%;">
+                    <div class="page-header">
+                        <h2 id="detailTitle">Úl #1</h2>
+                        <span id="lblStatus" class="status-badge">V pořádku</span>
+                        <div class="divider"></div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <!-- Královna -->
+                        <div class="stat-box">
+                            <label>Královna</label>
+                            <div class="value" id="lblQueen">Ano</div>
+                            <small id="lblQueenAge">Věk: 10 cyklů</small>
+                        </div>
+
+                        <!-- Populace -->
+                        <div class="stat-box">
+                            <label>Populace</label>
+                            <div class="value large-num" id="lblPop">0</div>
+                            <small>včel</small>
+                        </div>
+                    </div>
+
+                    <div class="bars-section">
+                        <div class="bar-row">
+                            <div class="bar-label">
+                                <span>Zdraví Úlu</span>
+                                <span id="valHealth">100%</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill health" id="barHealth" style="width: 100%;"></div>
+                            </div>
+                        </div>
+<div class="hive-visual-section">
+    <label>Stav Rámků v Úlu</label>
+    <!-- Zde se vygenerují rámky -->
+    <div id="visualHive" class="hive-rack"></div>
+</div>
+                        <div class="bar-row">
+                            <div class="bar-label">
+                                <span>Produkce Medu</span>
+                                <span id="valProd">0%</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill honey" id="barProd" style="width: 0%;"></div>
+                            </div>
+                            <div class="frames-info">
+                                Plné rámky: <span id="lblFrames">0/4</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="actions-grid">
+                        <button id="btnInv" class="action-btn" onclick="action('openInventory')">📦 Inventář</button>
+                        <button id="btnQueen" class="action-btn" onclick="action('insertQueen')">👑 Vložit Královnu</button>
+                        <button id="btnHarvest" class="action-btn" onclick="action('harvest')">🍯 Vyjmout Rámek</button>
+                        <button id="btnCure" class="action-btn" onclick="action('cure')">💊 Podat Lék</button>
+                    </div>
+                </div>
+
+                <!-- Placeholder když není nic vybráno -->
+                <div id="noSelection" class="empty-state">
+                    <p>Vyberte úl ze seznamu<br>na levé straně.</p>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
