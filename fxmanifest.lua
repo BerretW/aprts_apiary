@@ -1,24 +1,23 @@
 fx_version 'cerulean'
 lua54 'yes'
 rdr3_warning 'I acknowledge that this is a prerelease build of RedM, and I am aware my resources *will* become incompatible once RedM ships.'
-
+game 'rdr3'
 author 'SpoiledMouse'
-version 'a1.0.0'
-description 'aprts_apiary'
+version '1.0'
+name 'aprts_apiary'
+description 'Pokročilý systém včelařství'
 
-games {"rdr3"}
+shared_script 'config.lua'
 
-client_scripts {'config.lua','client/client.lua','client/events.lua','client/renderer.lua','client/visualizer.lua','client/commands.lua',}
-server_scripts {'@oxmysql/lib/MySQL.lua','config.lua','server/server.lua','server/events.lua','server/commands.lua','server/hive.lua','server/tick.lua'}
-shared_scripts {
-    'config.lua',
-    '@jo_libs/init.lua',
-    '@ox_lib/init.lua'
+server_scripts {
+    '@oxmysql/lib/MySQL.lua', -- Načtení knihovny pro SQL
+    'server/Genetics.lua',
+    'server/main.lua'
 }
 
+client_scripts {
+    'client/main.lua'
+}
 
-ui_page "nui://jo_libs/nui/menu/index.html"
-
-escrow_ignore {
-    'config.lua'
-  }
+dependency 'vorp_core'
+dependency 'vorp_inventory'
