@@ -1,4 +1,4 @@
-local ApiariesClient = {} -- Lokální kopie pro clienta (syncovaná serverem)
+ApiariesClient = {} -- Lokální kopie pro clienta (syncovaná serverem)
 local Prompts = {}
 local PromptGroup = GetRandomIntInRange(0, 0xffffff)
 -- Inicializace promptů
@@ -35,14 +35,6 @@ CreateThread(function()
     PromptRegisterEnd(Prompts.Harvest)
 end)
 
--- Event pro přijetí dat o včelínech (při připojení nebo vytvoření)
-RegisterNetEvent("bees:apiaryCreated", function(id, coords, type)
-    ApiariesClient[id] = {
-        coords = coords,
-        type = type
-    }
-    -- Zde by se spawnul prop (objekt úlu) pomocí CreateObject...
-end)
 
 -- Příklad vykreslení objektu v Client/Main.lua uvnitř eventu
 RegisterNetEvent("bees:apiaryCreated", function(id, coords, type)
@@ -56,9 +48,9 @@ RegisterNetEvent("bees:apiaryCreated", function(id, coords, type)
     }
 
     -- Model podle typu
-    local modelHash = GetHashKey("p_beehive01x") -- Příklad modelu
+    local modelHash = GetHashKey("aprts_prop_014") -- Příklad modelu
     if type == "medium" then
-        modelHash = GetHashKey("p_beehive02x")
+        modelHash = GetHashKey("aprts_prop_014")
     end
 
     RequestModel(modelHash)
@@ -68,7 +60,7 @@ RegisterNetEvent("bees:apiaryCreated", function(id, coords, type)
 
     -- Korekce Z souřadnice, aby úl nelevitoval (nebo použij PlaceObjectOnGroundProperly)
     local obj = CreateObject(modelHash, coords.x, coords.y, coords.z, false, true, false)
-    SetEntityAsMissionEntity(obj, true, true)
+    -- SetEntityAsMissionEntity(obj, true, true)
     FreezeEntityPosition(obj, true)
     PlaceObjectOnGroundProperly(obj)
 
