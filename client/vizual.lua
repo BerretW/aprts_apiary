@@ -5,8 +5,8 @@ local function StartBeeParticle(entity)
     if not DoesEntityExist(entity) then return nil end
     
     -- Načtení assetu
-    local particleDict = "scr_amb_insects"
-    local particleName = "scr_amb_insects_flies" -- Nebo jiný vhodný efekt včel/much
+    local particleDict = "core"
+    local particleName = "ent_amb_insect_bee_swarm" -- Nebo jiný vhodný efekt včel/much
     
     RequestNamedPtfxAsset(particleDict)
     while not HasNamedPtfxAssetLoaded(particleDict) do
