@@ -22,10 +22,12 @@ client_scripts {
 }
 ui_page 'html/index.html'
 files {
+    'html/chart.js',
     'html/*.js',
     'html/*.css',
     'html/*.html',
-    'html/images/*'
+    'html/images/*',
+    
 }
 dependency 'vorp_core'
 dependency 'vorp_inventory'

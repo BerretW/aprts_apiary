@@ -191,3 +191,16 @@ CreateThread(function()
         Wait(sleep)
     end
 end)
+
+RegisterNetEvent("bees:openMicroscopeClient", function(genes)
+    SetNuiFocus(true, true)
+    SendNUIMessage({
+        action = "openMicroscope",
+        genetics = genes
+    })
+end)
+
+RegisterNUICallback("closeMicroscope", function(data, cb)
+    SetNuiFocus(false, false)
+    cb("ok")
+end)

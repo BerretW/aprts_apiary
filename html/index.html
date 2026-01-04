@@ -2,114 +2,132 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
+    <title>Apiary Ledger</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Import westernových a ručních fontů z Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Special+Elite&family=Cormorant+Garamond:wght@600&display=swap" rel="stylesheet">
+    <!-- Google Fonts pro Western styl -->
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Homemade+Apple&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <div id="microscopeApp" style="display:none;">
+    <div class="microscope-paper">
+        <h2>Genetická Analýza</h2>
+        <div class="chart-container">
+            <canvas id="geneticsChart"></canvas>
+        </div>
+        <div class="gene-details">
+            <p>Generace: <span id="geneGen">0</span></p>
+            <p>Kvalita: <span id="geneQuality">F</span></p>
+        </div>
+        <div class="stamp-approved">ANALYZOVÁNO</div>
+        <button class="close-micro-btn" onclick="closeMicroscope()">Zavřít</button>
+    </div>
+</div>
     <div id="app" style="display:none;">
-        <div class="book-cover">
-            <!-- Hřbet knihy -->
+        
+        <!-- Hlavní kontejner knihy -->
+        <div class="ledger-book">
             <div class="book-spine"></div>
             
-            <!-- LEVÁ STRANA: SEZNAM -->
-            <div class="page left-page">
-                <div class="page-content">
-                    <div class="page-header">
-                        <h2><span class="ornament">~</span> Včelí Deník <span class="ornament">~</span></h2>
-                        <div class="ink-line"></div>
-                    </div>
-                    
-                    <div class="hive-list-container">
-                        <div class="hive-list" id="hiveList">
-                            <!-- Seznam generuje JS -->
-                        </div>
-                    </div>
+            <!-- LEVÁ STRANA: SEZNAM A PŘEHLED -->
+            <div class="page page-left">
+                <div class="paper-texture"></div>
+                
+                <header class="page-header">
+                    <h1>Včelařův Deník</h1>
+                    <span class="sub-signature">Evidence včelstva & produkce</span>
+                    <div class="ink-separator"></div>
+                </header>
 
-                    <div class="page-footer">
-                        <button id="btnBuild" class="btn-wood" onclick="action('build')">
-                            <span class="icon">🔨</span> Přistavět Úl
-                        </button>
+                <div class="hives-container">
+                    <div id="hiveList" class="hive-list">
+                        <!-- JS generuje položky zde -->
                     </div>
+                </div>
+
+                <div class="page-footer">
+                    <button id="btnBuild" class="action-btn btn-wood" onclick="action('build')">
+                        <span class="icon">🔨</span> Založit nový úl
+                    </button>
+                    <div class="capacity-info" id="capacityInfo">Kapacita: 0/4</div>
                 </div>
             </div>
 
-            <!-- PRAVÁ STRANA: DETAIL -->
-            <div class="page right-page">
-                <button class="close-btn" onclick="closeMenu()">✖</button>
-                <div class="honey-stain"></div> <!-- Dekorace -->
+            <!-- PRAVÁ STRANA: DETAIL ÚLU -->
+            <div class="page page-right">
+                <div class="paper-texture"></div>
+                <button class="close-x" onclick="closeMenu()">✕</button>
 
-                <!-- Obsah detailu -->
-                <div id="hiveDetails" style="display:none; height: 100%;">
-                    
-                    <!-- Hlavička detailu -->
-                    <div class="page-header">
-                        <h2 id="detailTitle">Úl #1</h2>
-                        <div class="status-wrapper">
-                            <span id="lblStatus" class="status-stamp">V pořádku</span>
-                        </div>
-                    </div>
-
-                    <!-- Statistiky (Královna / Populace) -->
-                    <div class="paper-box stats-grid">
-                        <div class="stat-item">
-                            <label>Královna</label>
-                            <div class="value" id="lblQueen">Aktivní</div>
-                            <small id="lblQueenAge">0 cyklů</small>
-                        </div>
-                        <div class="stat-item separator-left">
-                            <label>Populace</label>
-                            <div class="value large-num" id="lblPop">0</div>
-                            <small>dělnic</small>
-                        </div>
-                    </div>
-
-                    <div class="bars-section">
-                        <!-- Zdraví Úlu -->
-                        <div class="bar-group">
-                            <div class="bar-label">
-                                <span>Kondice Úlu</span>
-                                <span id="valHealth">100%</span>
-                            </div>
-                            <div class="bar-frame">
-                                <div class="bar-fill health-fill" id="barHealth" style="width: 100%;"></div>
-                            </div>
-                        </div>
-
-                        <!-- Vizuální Rámky (Zde se děje plnění medu) -->
-                        <div class="visual-section">
-                            <label class="section-title">Inspekce Rámků</label>
-                            <div class="hive-rack-wood">
-                                <!-- JS sem vygeneruje sloty -->
-                                <div id="visualHive" class="hive-rack-slots"></div>
-                            </div>
-                            <!-- Textový souhrn pod rámky -->
-                            <div class="frames-info text-center">
-                                <span id="lblFrames">0/4</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="divider-fancy"></div>
-
-                    <!-- Ovládací tlačítka -->
-                    <div class="actions-grid">
-                        <!-- Inventář přes celou šířku -->
-                        <button id="btnInv" class="btn-paper btn-full" onclick="action('openInventory')">📦 Otevřít Inventář</button>
-                        
-                        <button id="btnQueen" class="btn-paper" onclick="action('insertQueen')">👑 Královna</button>
-                        <button id="btnInsertFrame" class="btn-paper" onclick="action('insertFrame')">🔲 Vložit Rám</button>
-                        
-                        <button id="btnHarvest" class="btn-paper honey-btn" onclick="action('harvest')">🍯 Vyjmout Med</button>
-                        <button id="btnCure" class="btn-paper red-ink" onclick="action('cure')">💊 Podat Lék</button>
-                    </div>
+                <!-- Pokud není vybrán úl -->
+                <div id="noSelection" class="empty-state">
+                    <div class="sketch-bee">🐝</div>
+                    <p>Vyberte úl ze seznamu<br>pro provedení inspekce.</p>
                 </div>
 
-                <!-- Placeholder když není nic vybráno -->
-                <div id="noSelection" class="empty-state">
-                    <img src="https://cdn-icons-png.flaticon.com/512/732/732085.png" alt="Bee" style="opacity: 0.5; width: 64px; margin-bottom: 10px;">
-                    <p>Zvolte úl ze seznamu<br>pro inspekci.</p>
+                <!-- Detail vybraného úlu -->
+                <div id="hiveDetails" class="details-content" style="display:none;">
+                    
+                    <header class="detail-header">
+                        <h2 id="detailTitle">Úl Číslo 1</h2>
+                        <div id="statusStamp" class="stamp">KONTROLA</div>
+                    </header>
+
+                    <!-- Statistiky -->
+                    <div class="stats-row">
+                        <div class="stat-box">
+                            <label>Královna</label>
+                            <span id="lblQueen" class="stat-value">---</span>
+                            <small id="lblQueenAge">---</small>
+                        </div>
+                        <div class="stat-box">
+                            <label>Populace</label>
+                            <span id="lblPop" class="stat-value">0</span>
+                            <small>dělnic</small>
+                        </div>
+                        <div class="stat-box">
+                            <label>Zdraví</label>
+                            <div class="health-bar-container">
+                                <div id="barHealth" class="health-fill" style="width: 0%"></div>
+                            </div>
+                            <small id="valHealth">0%</small>
+                        </div>
+                    </div>
+
+                    <div class="ink-separator-small"></div>
+
+                    <!-- Vizuální inspekce rámků -->
+                    <div class="inspection-area">
+                        <h3>Inspekce Rámků</h3>
+                        <div class="hive-box-visual">
+                            <div id="visualHive" class="frames-rack">
+                                <!-- JS generuje rámky -->
+                            </div>
+                        </div>
+                        <div class="frame-legend">
+                            <span class="legend-item"><span class="dot full"></span>Plný</span>
+                            <span class="legend-item"><span class="dot active"></span>Pracuje se</span>
+                            <span class="legend-item"><span class="dot empty"></span>Prázdný</span>
+                        </div>
+                    </div>
+
+                    <!-- Ovládací panel -->
+                    <div class="controls-area">
+                        <div class="control-group production">
+                            <span class="group-label">Produkce</span>
+                            <button id="btnInsertFrame" class="action-btn" onclick="action('insertFrame')">Vložit Rám</button>
+                            <button id="btnHarvest" class="action-btn btn-gold" onclick="action('harvest')">Vyjmout Med</button>
+                        </div>
+                        
+                        <div class="control-group care">
+                            <span class="group-label">Péče o úl</span>
+                            <button id="btnQueen" class="action-btn" onclick="action('insertQueen')">Vložit Královnu</button>
+                            <button id="btnCure" class="action-btn btn-red" onclick="action('cure')">Podat Lék</button>
+                        </div>
+                        
+                        <button id="btnInv" class="action-btn btn-full" onclick="action('openInventory')">📦 Otevřít Inventář Úlu</button>
+                    </div>
+
                 </div>
             </div>
         </div>

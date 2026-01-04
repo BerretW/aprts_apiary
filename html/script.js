@@ -1,7 +1,8 @@
 let currentApiaryId = null;
 let currentHivesData = {};
 let selectedHiveId = null;
-
+let geneticsChart = null;
+// Naslouchání zprávám z LUA
 window.addEventListener('message', function(event) {
     let data = event.data;
 
@@ -11,19 +12,9 @@ window.addEventListener('message', function(event) {
         
         // Zobrazit UI
         document.getElementById('app').style.display = 'flex';
-        renderHiveList();
         
-        // Logika tlačítka pro stavbu
-        let count = Object.keys(currentHivesData).length;
-        let btnBuild = document.getElementById('btnBuild');
-        
-        if (count >= data.maxHives) {
-            btnBuild.innerText = "Kapacita Včelína Naplněna";
-            btnBuild.disabled = true;
-        } else {
-            btnBuild.innerText = "+ Přistavět Úl";
-            btnBuild.disabled = false;
-        }
+        // Render seznamu a tlačítka pro stavbu
+        updateLeftPage(data.maxHives);
         
         // Reset výběru
         selectHive(null);
@@ -31,30 +22,121 @@ window.addEventListener('message', function(event) {
 
     if (data.action === "update") {
         currentHivesData = data.hives;
-        renderHiveList();
-        if (selectedHiveId) {
+        // Zjistit maxHives (pokud není posláno, odhadneme z UI nebo necháme)
+        // Ideálně by update event měl posílat i maxHives, ale pro teď jen překreslíme list
+        updateLeftPage(null); 
+        
+        if (selectedHiveId && currentHivesData[selectedHiveId]) {
             renderDetails(selectedHiveId);
+        } else if (selectedHiveId && !currentHivesData[selectedHiveId]) {
+            // Úl byl smazán nebo neexistuje
+            selectHive(null);
         }
     }
+ if (data.action === "openMicroscope") {
+        document.getElementById('microscopeApp').style.display = 'flex';
+        renderRadarChart(data.genetics);
+        document.getElementById('geneGen').innerText = data.genetics.generation || 1;
+        
+        // Výpočet celkového skóre (Average)
+        let total = 
+            data.genetics.productivity + 
+            data.genetics.fertility + 
+            data.genetics.resilience + 
+            data.genetics.adaptability + 
+            (100 - data.genetics.aggression); // Agrese je inverzní
+        
+        let avg = Math.floor(total / 5);
+        let grade = "F";
+        if(avg > 80) grade = "S (Legendární)";
+        else if(avg > 70) grade = "A (Vynikající)";
+        else if(avg > 50) grade = "B (Průměr)";
+        else grade = "C (Slabé)";
+        
+        document.getElementById('geneQuality').innerText = grade;
+    }
 });
+function closeMicroscope() {
+    document.getElementById('microscopeApp').style.display = 'none';
+    $.post('https://aprts_apiary/closeMicroscope', JSON.stringify({}));
+}
 
+function renderRadarChart(genes) {
+    const ctx = document.getElementById('geneticsChart').getContext('2d');
+    
+    // Zničit starý graf, pokud existuje
+    if (geneticsChart) {
+        geneticsChart.destroy();
+    }
+
+    // Chart.js konfigurace
+    geneticsChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: [
+                'Produktivita', 
+                'Plodnost', 
+                'Odolnost', 
+                'Adaptabilita', 
+                'Klidnost (Non-Agrese)', // Obrátíme Agresi, aby "více = lépe" pro graf
+                'Životnost'
+            ],
+            datasets: [{
+                label: 'Genetický Profil',
+                data: [
+                    genes.productivity,
+                    genes.fertility,
+                    genes.resilience,
+                    genes.adaptability,
+                    100 - genes.aggression, // Inverze
+                    (genes.lifespan / 1.2) // Normalizace životnosti (cca 100 = 100%)
+                ],
+                backgroundColor: 'rgba(255, 179, 0, 0.4)', // Medová výplň
+                borderColor: '#3e2723', // Tmavé dřevo linky
+                borderWidth: 2,
+                pointBackgroundColor: '#3e2723'
+            }]
+        },
+        options: {
+            scales: {
+                r: {
+                    angleLines: { color: 'rgba(0,0,0,0.2)' },
+                    grid: { color: 'rgba(0,0,0,0.1)' },
+                    pointLabels: {
+                        font: { size: 14, family: 'Cormorant Garamond' },
+                        color: '#3e2723'
+                    },
+                    suggestedMin: 0,
+                    suggestedMax: 100,
+                    ticks: { display: false } // Skrýt čísla na osách pro čistší vzhled
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+}
 function closeMenu() {
     $.post('https://aprts_apiary/close', JSON.stringify({}));
     document.getElementById('app').style.display = 'none';
 }
 
 document.onkeyup = function (data) {
-    if (data.which == 27) {
+    if (data.which == 27) { // ESC
         closeMenu();
     }
 };
 
-function renderHiveList() {
+
+// --- LOGIKA LEVÉ STRANY ---
+
+function updateLeftPage(maxHives) {
     let list = document.getElementById('hiveList');
     list.innerHTML = "";
     
-    // Seřadíme klíče číselně (1, 2, 3...)
     let sortedKeys = Object.keys(currentHivesData).sort((a,b) => Number(a) - Number(b));
+    let count = sortedKeys.length;
 
     sortedKeys.forEach(key => {
         let hive = currentHivesData[key];
@@ -62,21 +144,46 @@ function renderHiveList() {
         div.className = 'hive-item';
         if (selectedHiveId == key) div.classList.add('active');
         
-        // Ikona podle stavu
-        let icon = "🐝";
-        if (!hive.hasQueen) icon = "⚠️";
-        if (hive.disease) icon = "🦠";
+        // Ikona stavu
+        let statusIcon = "";
+        if (hive.disease) statusIcon = "🦠";
+        else if (!hive.hasQueen) statusIcon = "⚠️";
+        else if (hive.filledFrames > 0) statusIcon = "🍯";
+        else statusIcon = "🐝";
 
-        div.innerHTML = `<span>Úl #${key}</span> <span>${icon}</span>`;
+        div.innerHTML = `
+            <span><strong>Úl #${key}</strong></span> 
+            <span class="hive-status-icon">${statusIcon}</span>
+        `;
         div.onclick = () => selectHive(key);
         list.appendChild(div);
     });
+
+    // Update kapacity a tlačítka
+    if (maxHives !== null) {
+        let btnBuild = document.getElementById('btnBuild');
+        let capInfo = document.getElementById('capacityInfo');
+        
+        capInfo.innerText = `Kapacita stanoviště: ${count}/${maxHives}`;
+        
+        if (count >= maxHives) {
+            btnBuild.disabled = true;
+            btnBuild.innerHTML = "Stanoviště je plné";
+        } else {
+            btnBuild.disabled = false;
+            btnBuild.innerHTML = '<span class="icon">🔨</span> Založit nový úl';
+        }
+    }
 }
+
+// --- LOGIKA PRAVÉ STRANY (DETAIL) ---
 
 function selectHive(id) {
     selectedHiveId = id;
-    renderHiveList(); // Pro aktualizaci zvýraznění
     
+    // Překreslit levý list (aby se zvýraznil aktivní prvek)
+    updateLeftPage(null);
+
     let details = document.getElementById('hiveDetails');
     let empty = document.getElementById('noSelection');
 
@@ -94,115 +201,109 @@ function selectHive(id) {
 function renderDetails(id) {
     let hive = currentHivesData[id];
     
-    // Header
-    document.getElementById('detailTitle').innerText = `Detail Úlu #${id}`;
+    document.getElementById('detailTitle').innerText = `Úl Číslo ${id}`;
     
-    // Status
-    let statusEl = document.getElementById('lblStatus');
+    // 1. STATUS STAMP
+    let stamp = document.getElementById('statusStamp');
     if (hive.disease) {
-        statusEl.innerText = "⚠️ ZAMOŘENO: " + (hive.disease === "mites" ? "Roztoči" : hive.disease);
-        statusEl.className = "status-badge status-bad";
+        stamp.innerText = "ZAMOŘENO";
+        stamp.className = "stamp danger";
     } else if (!hive.hasQueen) {
-        statusEl.innerText = "⚠️ Chybí Královna";
-        statusEl.className = "status-badge status-bad";
+        stamp.innerText = "BEZ KRÁLOVNY";
+        stamp.className = "stamp danger";
+    } else if (hive.filledFrames > 0) {
+        stamp.innerText = "PRODUKTIVNÍ";
+        stamp.className = "stamp ok";
     } else {
-        statusEl.innerText = "✔ V pořádku";
-        statusEl.className = "status-badge status-ok";
+        stamp.innerText = "V POŘÁDKU";
+        stamp.className = "stamp ok"; // nebo warn pro neutrální
     }
 
-    // Queen
+    // 2. STATISTIKY
     let queenEl = document.getElementById('lblQueen');
-    let queenAgeEl = document.getElementById('lblQueenAge');
     if (hive.hasQueen) {
         queenEl.innerText = "Aktivní";
-        queenEl.style.color = "#2e7d32";
-        queenAgeEl.style.display = "block";
-        queenAgeEl.innerText = `Životnost: ${hive.queenLifespan} cyklů`;
+        queenEl.className = "stat-value good";
+        document.getElementById('lblQueenAge').innerText = `Životnost: ${hive.queenLifespan}`;
     } else {
         queenEl.innerText = "Chybí";
-        queenEl.style.color = "#c62828";
-        queenAgeEl.style.display = "none";
+        queenEl.className = "stat-value bad";
+        document.getElementById('lblQueenAge').innerText = "---";
     }
 
-    // Population - ZAOKROUHLENÍ!
-    let pop = Math.floor(hive.population); // Zde je oprava dlouhého čísla
-    document.getElementById('lblPop').innerText = pop.toLocaleString(); // Přidá mezery pro tisíce
-
-    // Bars
+    let pop = Math.floor(hive.population);
+    document.getElementById('lblPop').innerText = pop.toLocaleString();
+    
     let hp = Math.floor(hive.health);
     document.getElementById('valHealth').innerText = hp + "%";
     document.getElementById('barHealth').style.width = hp + "%";
+    document.getElementById('barHealth').style.backgroundColor = hp < 50 ? "#d32f2f" : "#388e3c";
 
-    let prod = Math.floor(hive.progress);
-    document.getElementById('valProd').innerText = prod + "%";
-    document.getElementById('barProd').style.width = prod + "%";
+    // 3. VIZUÁLNÍ RÁMKY
+    renderVisualFrames(hive);
+
+    // 4. AKTUALIZACE TLAČÍTEK
+    let totalInstalled = hive.filledFrames + hive.emptyFrames;
     
-    document.getElementById('lblFrames').innerText = `${hive.filledFrames} / ${hive.maxSlots}`;
-
-
- let visualContainer = document.getElementById('visualHive');
-    visualContainer.innerHTML = ''; 
-
-    // Kolik máme hotových a kolik prázdných čekajících
-    let filledCount = hive.filledFrames;
-    let emptyCount = hive.emptyFrames;
-    let totalInstalled = filledCount + emptyCount;
-
-    // Projdeme všechny sloty (např. 0, 1, 2, 3)
-    for (let i = 0; i < hive.maxSlots; i++) {
-        let slot = document.createElement('div');
-        slot.className = 'frame-slot';
-        
-        // --- LOGIKA STAVŮ ---
-        
-        if (i < filledCount) {
-            // 1. UŽ JE PLNÝ (Hotovo z dřívějška)
-            slot.classList.add('full');
-            slot.setAttribute('data-tooltip', 'Plný Medu (100%)');
-            
-        } else if (i === filledCount && emptyCount > 0) {
-            // 2. PRÁVĚ SE PLNÍ (Tohle je ten aktivní!)
-            // Pokud máme ještě prázdné rámky, ten první na řadě (index == filledCount) se plní.
-            slot.classList.add('filling');
-            
-            // Nastavíme CSS proměnnou pro výšku hladiny (0-100%)
-            slot.style.setProperty('--fill-pct', hive.progress + '%');
-            
-            // Tooltip ukazuje aktuální %
-            slot.setAttribute('data-tooltip', `Plnění: ${hive.progress}%`);
-            
-        } else if (i < totalInstalled) {
-            // 3. JE VLOŽENÝ, ALE ČEKÁ VE FRONTĚ (Prázdný)
-            slot.classList.add('installed');
-            slot.setAttribute('data-tooltip', 'Připraven (0%)');
-            
-        } else {
-            // 4. CHYBÍ (Nevložený)
-            slot.setAttribute('data-tooltip', 'Prázdný Slot');
-        }
-        
-        visualContainer.appendChild(slot);
-    }
-    
-    // Aktualizace textu pod rámky
-    if(document.getElementById('lblFrames')) {
-        document.getElementById('lblFrames').innerText = `Stav rámků: ${filledCount} Plné / ${totalInstalled} Vložené`;
-    }
-
-    // --- TLAČÍTKA ---
-    // Logika tlačítek zůstává, jen CSS se postará o layout
+    // Tlačítko: Vložit rám (jen pokud je místo)
     toggleBtn('btnInsertFrame', totalInstalled < hive.maxSlots);
+    
+    // Tlačítko: Sklizeň (jen pokud je co brát)
     toggleBtn('btnHarvest', hive.filledFrames > 0);
+    
+    // Tlačítko: Královna (jen pokud chybí)
     toggleBtn('btnQueen', !hive.hasQueen);
+    
+    // Tlačítko: Lék (jen pokud je nemocný)
     toggleBtn('btnCure', hive.disease != null);
 }
 
-function toggleBtn(id, state) {
-    let btn = document.getElementById(id);
-    btn.disabled = !state;
+function renderVisualFrames(hive) {
+    let container = document.getElementById('visualHive');
+    container.innerHTML = "";
+
+    let filledCount = hive.filledFrames;
+    let emptyCount = hive.emptyFrames;
+    let totalInstalled = filledCount + emptyCount;
+    let maxSlots = hive.maxSlots;
+
+    for (let i = 0; i < maxSlots; i++) {
+        let slot = document.createElement('div');
+        slot.className = 'frame-visual';
+
+        // Tooltip text
+        let tooltipText = "";
+
+        if (i < filledCount) {
+            // PLNÝ
+            slot.classList.add('full');
+            tooltipText = "Plný rámek medu";
+        } else if (i === filledCount && emptyCount > 0) {
+            // PRÁVĚ SE PLNÍ
+            slot.classList.add('filling');
+            slot.style.setProperty('--fill-pct', hive.progress + '%');
+            tooltipText = `Plní se: ${hive.progress}%`;
+        } else if (i < totalInstalled) {
+            // PRÁZDNÝ (VLOŽENÝ)
+            slot.classList.add('installed');
+            tooltipText = "Prázdný rámek (připraven)";
+        } else {
+            // PRÁZDNÝ SLOT (NEVLOŽENÝ)
+            slot.classList.add('empty-slot');
+            tooltipText = "Prázdné místo pro rám";
+        }
+        
+        slot.title = tooltipText; // Basic HTML tooltip
+        container.appendChild(slot);
+    }
+}
+
+function toggleBtn(id, enable) {
+    document.getElementById(id).disabled = !enable;
 }
 
 function action(actName) {
+    // Pro akce vyžadující vybraný úl
     if (actName !== 'build' && !selectedHiveId) return;
 
     $.post(`https://aprts_apiary/${actName}`, JSON.stringify({

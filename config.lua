@@ -5,7 +5,7 @@ Config.UpdateInterval = 1000 * 10
 Config.SaveInterval = 10000 * 30 
 
 Config.MaxHivesPerApiary = 4 -- NOVÉ: Kolik úlů se vejde na jedno stanoviště
-
+Config.MaxPopulation = 10000 -- Maximální limit populace
 -- HROZBY A PÉČE
 Config.SwarmPopulation = 8000 
 Config.QueenLifespan = 100 
