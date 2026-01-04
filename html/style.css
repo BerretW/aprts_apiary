@@ -332,3 +332,82 @@ h1, h2, h3 { margin: 0; font-weight: normal; }
     font-family: 'Rye', serif;
 }
 .close-micro-btn:hover { background: #5d4037; }
+
+/* Přidej na konec souboru */
+/* --- SEKCE LOGŮ (DENÍK ÚLU) --- */
+
+.logs-section {
+    margin-top: 15px; /* Odstup od tlačítek */
+    background: rgba(255, 255, 255, 0.4); /* Trochu světlejší pozadí pro čitelnost */
+    border: 1px solid #a1887f; /* Jemný hnědý rámeček */
+    border-radius: 4px;
+    
+    /* DŮLEŽITÉ PRO SCROLLOVÁNÍ: */
+    height: 130px; /* Fixní výška, aby se vešel na stránku a nepřetékal */
+    display: flex;
+    flex-direction: column; /* Aby nadpis byl nahoře a list pod ním */
+    overflow: hidden; /* Ořízne vše, co by chtělo utéct ven */
+}
+
+.logs-section h3 {
+    font-size: 14px;
+    font-family: var(--font-body);
+    font-weight: bold;
+    color: var(--wood-dark);
+    margin: 0;
+    padding: 8px 10px;
+    text-transform: uppercase;
+    border-bottom: 1px dashed #a1887f; /* Linka pod nadpisem */
+    background: rgba(255,255,255,0.3);
+    flex-shrink: 0; /* Nadpis se nesmí zmenšovat */
+}
+
+.logs-list {
+    list-style: none;
+    padding: 5px 10px;
+    margin: 0;
+    
+    /* SCROLLOVÁNÍ */
+    overflow-y: auto; /* Zapne svislý posuvník, když je textu moc */
+    flex-grow: 1; /* Roztáhne se do zbytku výšky kontejneru */
+}
+
+/* STYLOVÁNÍ POSUVNÍKU (aby nebyl hnusný šedý) */
+.logs-list::-webkit-scrollbar {
+    width: 5px;
+}
+.logs-list::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.05);
+}
+.logs-list::-webkit-scrollbar-thumb {
+    background: #5d4037; /* Barva dřeva */
+    border-radius: 4px;
+}
+.logs-list::-webkit-scrollbar-thumb:hover {
+    background: #3e2723;
+}
+
+/* Úprava řádků v logu */
+.logs-list li {
+    font-family: var(--font-hand); /* Ručně psaný font */
+    font-size: 15px; /* Trochu menší, ať se tam toho vejde víc */
+    color: var(--ink-primary);
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05); /* Jemná linka mezi řádky */
+    display: flex;
+    gap: 8px;
+    line-height: 1.2;
+}
+
+.logs-list li:last-child {
+    border-bottom: none;
+}
+
+.logs-list li .log-time {
+    font-family: var(--font-body); /* Čas čitelným písmem */
+    font-weight: bold;
+    color: var(--wood-dark);
+    font-size: 12px;
+    min-width: 35px;
+    padding-top: 2px; /* Zarovnání s ručním písmem */
+}

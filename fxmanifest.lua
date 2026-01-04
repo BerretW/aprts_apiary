@@ -12,7 +12,10 @@ shared_script 'config.lua'
 server_scripts {
     '@oxmysql/lib/MySQL.lua', -- Načtení knihovny pro SQL
     'server/Genetics.lua',
-    'server/main.lua'
+    'server/sv_main.lua',      -- Globální proměnné, DB funkce a Init
+    'server/sv_functions.lua', -- Pomocné funkce a logika
+    'server/sv_events.lua',    -- Eventy a Usable Items
+    'server/sv_commands.lua'   -- Příkazy
 }
 
 client_scripts {

@@ -1,10 +1,10 @@
 Config = {}
 
 Config.Debug = false
-Config.UpdateInterval = 1000 * 10 
-Config.SaveInterval = 10000 * 30 
+Config.UpdateInterval = 60000 * 10  
+Config.SaveInterval = 60000 * 5 
 
-Config.MaxHivesPerApiary = 4 -- NOVÉ: Kolik úlů se vejde na jedno stanoviště
+Config.MaxHivesPerApiary = 2 -- NOVÉ: Kolik úlů se vejde na jedno stanoviště
 Config.MaxPopulation = 10000 -- Maximální limit populace
 -- HROZBY A PÉČE
 Config.SwarmPopulation = 8000 
@@ -44,5 +44,5 @@ Config.Diseases = {
 }
 
 Config.ExtractorLocations = {
-    vector3(1234.56, -1234.56, 42.0) 
+    vector3(-3616.833008, -2621.885498, -13.728212)
 }

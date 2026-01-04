@@ -26,6 +26,10 @@ end)
 
 RegisterNUICallback("openInventory", function(data, cb)
     -- Zavřeme NUI, aby se mohl otevřít inventář
+     SendNUIMessage({
+        action = "close"
+    })
+
     isMenuOpen = false
     SetNuiFocus(false, false)
     TriggerServerEvent("bees:openHive", data.apiaryId, data.hiveId)
@@ -79,5 +83,10 @@ end)
 
 RegisterNUICallback("insertFrame", function(data, cb)
     TriggerServerEvent("bees:insertFrame", data.apiaryId, data.hiveId)
+    cb("ok")
+end)
+
+RegisterNUICallback("removeQueen", function(data, cb)
+    TriggerServerEvent("bees:removeQueen", data.apiaryId, data.hiveId)
     cb("ok")
 end)

@@ -10,20 +10,24 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    
+    <!-- MIKROSKOP OKNO -->
     <div id="microscopeApp" style="display:none;">
-    <div class="microscope-paper">
-        <h2>Genetická Analýza</h2>
-        <div class="chart-container">
-            <canvas id="geneticsChart"></canvas>
+        <div class="microscope-paper">
+            <h2>Genetická Analýza</h2>
+            <div class="chart-container">
+                <canvas id="geneticsChart"></canvas>
+            </div>
+            <div class="gene-details">
+                <p>Generace: <span id="geneGen">0</span></p>
+                <p>Kvalita: <span id="geneQuality">F</span></p>
+            </div>
+            <div class="stamp-approved">ANALYZOVÁNO</div>
+            <button class="close-micro-btn" onclick="closeMicroscope()">Zavřít</button>
         </div>
-        <div class="gene-details">
-            <p>Generace: <span id="geneGen">0</span></p>
-            <p>Kvalita: <span id="geneQuality">F</span></p>
-        </div>
-        <div class="stamp-approved">ANALYZOVÁNO</div>
-        <button class="close-micro-btn" onclick="closeMicroscope()">Zavřít</button>
     </div>
-</div>
+
+    <!-- KNIHA (HLAVNÍ APP) -->
     <div id="app" style="display:none;">
         
         <!-- Hlavní kontejner knihy -->
@@ -121,11 +125,21 @@
                         
                         <div class="control-group care">
                             <span class="group-label">Péče o úl</span>
-                            <button id="btnQueen" class="action-btn" onclick="action('insertQueen')">Vložit Královnu</button>
+                            <!-- Tlačítko pro královnu nemá onclick v HTML, nastavuje ho JS -->
+                            <button id="btnQueen" class="action-btn">Správa Královny</button>
                             <button id="btnCure" class="action-btn btn-red" onclick="action('cure')">Podat Lék</button>
                         </div>
                         
                         <button id="btnInv" class="action-btn btn-full" onclick="action('openInventory')">📦 Otevřít Inventář Úlu</button>
+                    </div>
+
+                    <!-- NOVÁ SEKCE: LOGY ÚLU -->
+                    <div class="ink-separator-small"></div>
+                    <div class="logs-section">
+                        <h3>Deník Úlu</h3>
+                        <ul id="hiveLogs" class="logs-list">
+                            <!-- JS generuje logy zde -->
+                        </ul>
                     </div>
 
                 </div>
